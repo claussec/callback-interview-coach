@@ -1,10 +1,86 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Callback</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8.5' fill='none' stroke='%231D1D1F' stroke-width='2.6' stroke-linecap='round' stroke-dasharray='40.06 53.41' transform='rotate(45 12 12)'/%3E%3Ccircle cx='19.6' cy='12' r='2.5' fill='%23B08D57'/%3E%3C/svg%3E">
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Callback · Interview Coach</title>
+<meta name="description" content="Callback – KI-gestützter Interview-Coach. Übe Vorstellungsgespräche, Assessment Center und Case Interviews und bekomme strukturiertes Feedback. Prototyp.">
+<meta property="og:title" content="Callback · Fail here. Not there.">
+<meta property="og:description" content="Callback – KI-gestützter Interview-Coach. Übe Vorstellungsgespräche, Assessment Center und Case Interviews und bekomme strukturiertes Feedback. Prototyp.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://claussec.github.io/callback-interview-coach/screenshots/home-light.jpg">
+<meta name="theme-color" content="#F4F2EE">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8.5' fill='none' stroke='%231D1D1F' stroke-width='2.6' stroke-linecap='round' stroke-dasharray='40.06 53.41' transform='rotate(45 12 12)'/%3E%3Ccircle cx='19.6' cy='12' r='2.5' fill='%23B08D57'/%3E%3C/svg%3E">
 <style>
+/* Fonts are served from this repository, so the page makes no requests to third parties. */
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(fonts/HankenGrotesk-italic-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: italic;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(fonts/HankenGrotesk-italic-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(fonts/HankenGrotesk-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(fonts/HankenGrotesk-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/JetBrainsMono-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/JetBrainsMono-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/JetBrainsMono-normal-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/JetBrainsMono-normal-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+
 /* Layout: quiet premium product page. White and soft-grey surfaces, hairline dividers, black pill actions, one large product view; typography does the work. */
 :root{
   --paper:#FFFFFF;
@@ -636,6 +712,8 @@ details.steps-m[open]>summary::after{content:"–"}
 
 .foot{color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:16px;margin-top:40px}
 .foot p{margin:0;max-width:80ch}
+.foot #foot-body p+p{margin-top:8px}
+.foot #foot-body a{color:inherit}
 
 /* ---------- generalprobe additions ---------- */
 .planchip{appearance:none;align-self:center;border:1px solid var(--line);background:var(--sheet);color:var(--ink);font:inherit;font-size:12.5px;font-weight:650;line-height:1;padding:5px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}
@@ -1240,22 +1318,15 @@ body{background:transparent}
   .bars i,.dots i{animation:none}
   .tbar i,.mbar i{transition:none}
 }
-</style>
 
+</style>
+</head>
+<body>
 <div class="ambient" id="ambient" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i><i class="a4"></i></div>
 <header class="top">
   <div class="top-in">
     <div class="brand"><a class="logo" href="#" data-go="learn" aria-label="Callback · Heute"><svg class="cb-mark" viewBox="0 0 24 24" aria-hidden="true"><g class="cb-spin"><circle class="cb-arc" cx="12" cy="12" r="8.5" transform="rotate(45 12 12)"/><circle class="cb-dot" cx="19.6" cy="12" r="2.5"/></g></svg><span class="cb-word">Callback</span></a><span class="tagline">Fail here. Not there.</span><button type="button" class="planchip" id="plan-chip" aria-haspopup="dialog"></button></div>
-    <nav class="tabs" role="tablist" aria-label="Bereiche">
-      <button type="button" role="tab" id="tab-learn" data-tab="learn" aria-controls="view-learn" aria-selected="true">Start</button>
-      <button type="button" role="tab" id="tab-docs" data-tab="docs" aria-controls="view-docs" aria-selected="false">Unterlagen</button>
-      <button type="button" role="tab" id="tab-fit" data-tab="fit" aria-controls="view-fit" aria-selected="false">Interview</button>
-      <button type="button" role="tab" id="tab-ac" data-tab="ac" aria-controls="view-ac" aria-selected="false"><span class="lg">Assessment Center</span><span class="sm">AC</span></button>
-      <button type="button" role="tab" id="tab-case" data-tab="case" aria-controls="view-case" aria-selected="false">Case</button>
-      <button type="button" role="tab" id="tab-math" data-tab="math" aria-controls="view-math" aria-selected="false"><span class="lg">Tests</span><span class="sm">Tests</span></button>
-      <button type="button" role="tab" id="tab-history" data-tab="history" aria-controls="view-history" aria-selected="false">Verlauf</button>
-      <button type="button" role="tab" id="tab-admin" class="admin-tab" data-tab="admin" aria-controls="view-admin" aria-selected="false" hidden>Admin</button>
-    </nav>
+    <nav class="tabs" hidden aria-hidden="true"></nav>
     <div class="hd-r">
     <div class="langsw" role="group" aria-label="Sprache / Language">
       <button type="button" data-lang="de" aria-pressed="true" title="Deutsch"><svg viewBox="0 0 5 3" aria-hidden="true"><rect width="5" height="1" y="0" fill="#000"/><rect width="5" height="1" y="1" fill="#DD0000"/><rect width="5" height="1" y="2" fill="#FFCE00"/></svg><span>DE</span></button>
@@ -1297,12 +1368,12 @@ body{background:transparent}
   </section>
 
   <!-- ================= APPLICATIONS ================= -->
-  <section id="view-apps" class="view" role="tabpanel" aria-labelledby="tab-apps" hidden>
+  <section id="view-apps" class="view" hidden>
     <div class="apps" id="apps-body"></div>
   </section>
 
   <!-- ================= DOCS ================= -->
-  <section id="view-docs" class="view" role="tabpanel" aria-labelledby="tab-docs" hidden>
+  <section id="view-docs" class="view" hidden>
     <div id="docs-setup" class="setup">
       <div class="setup-main">
         <div>
@@ -1349,7 +1420,7 @@ body{background:transparent}
   </section>
 
   <!-- ================= ASSESSMENT CENTER ================= -->
-  <section id="view-ac" class="view" role="tabpanel" aria-labelledby="tab-ac" hidden>
+  <section id="view-ac" class="view" hidden>
     <div id="ac-setup" class="setup">
       <div class="setup-main">
         <div>
@@ -1383,7 +1454,7 @@ body{background:transparent}
   </section>
 
   <!-- ================= CASE ================= -->
-  <section id="view-case" class="view" role="tabpanel" aria-labelledby="tab-case" hidden>
+  <section id="view-case" class="view" hidden>
     <div id="case-setup" class="setup">
       <div class="setup-main">
         <div>
@@ -1432,7 +1503,7 @@ body{background:transparent}
   </section>
 
   <!-- ================= FIT ================= -->
-  <section id="view-fit" class="view" role="tabpanel" aria-labelledby="tab-fit" hidden>
+  <section id="view-fit" class="view" hidden>
     <div id="fit-setup" class="setup">
       <div class="setup-main">
         <div>
@@ -1490,7 +1561,7 @@ body{background:transparent}
   </section>
 
   <!-- ================= MATH ================= -->
-  <section id="view-math" class="view" role="tabpanel" aria-labelledby="tab-math" hidden>
+  <section id="view-math" class="view" hidden>
     <div id="math-setup" class="setup">
       <div class="setup-main">
         <div>
@@ -1537,7 +1608,7 @@ body{background:transparent}
   </section>
 
   <!-- ================= HISTORY ================= -->
-  <section id="view-history" class="view" role="tabpanel" aria-labelledby="tab-history" hidden>
+  <section id="view-history" class="view" hidden>
     <div class="hist">
       <div>
         <h1 class="h1">Verlauf</h1>
@@ -1548,7 +1619,7 @@ body{background:transparent}
   </section>
 
   <!-- ================= ADMIN (owner only) ================= -->
-  <section id="view-admin" class="view" role="tabpanel" aria-labelledby="tab-admin" hidden>
+  <section id="view-admin" class="view" hidden>
     <div class="admin">
       <div>
         <h1 class="h1">Nutzung &amp; Nachfrage</h1>
@@ -1558,10 +1629,7 @@ body{background:transparent}
     </div>
   </section>
 
-  <footer class="foot"><div class="sign"><svg class="cb-mark" viewBox="0 0 24 24" aria-hidden="true"><g class="cb-spin"><circle class="cb-arc" cx="12" cy="12" r="8.5" transform="rotate(45 12 12)"/><circle class="cb-dot" cx="19.6" cy="12" r="2.5"/></g></svg><b>Callback</b><span>Fail here. Not there.</span></div><details><summary>Prototyp · Hinweise &amp; Datenschutz</summary>
-    <p><b>Prototyp.</b> Alle Funktionen sind kostenlos. Interviewer, Hinweise und Feedback laufen über deinen Claude-Zugang und zählen zu deinem Nutzungslimit. Tests laufen direkt im Browser. Die Bewertungen sind Übungsfeedback, keine Vorhersage echter Ergebnisse.</p>
-    <p style="margin-top:8px">Anonyme Nutzungsstatistik: Die Person, die Callback erstellt hat, sieht ohne Namen, an welchen Tagen welche Bereiche genutzt werden, welche Punktzahlen herauskommen und wie Testnutzer auf den Preis reagieren. Antworten, Transkripte und Unterlagen sieht sie nicht.</p>
-  </details></footer>
+  <footer class="foot"><div class="sign"><svg class="cb-mark" viewBox="0 0 24 24" aria-hidden="true"><g class="cb-spin"><circle class="cb-arc" cx="12" cy="12" r="8.5" transform="rotate(45 12 12)"/><circle class="cb-dot" cx="19.6" cy="12" r="2.5"/></g></svg><b>Callback</b><span>Fail here. Not there.</span></div><details id="foot-note"><summary>Datenschutz &amp; Hinweise</summary><div id="foot-body"></div></details></footer>
   <div class="pw-back" id="goal-dlg" role="dialog" aria-modal="true" aria-labelledby="goal-title" hidden><div class="pw goal" id="goal-box"></div></div>
   <div class="pw-back" id="sheet-dlg" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden><div class="pw sheet" id="sheet-box"></div></div>
   <div class="pw-back onb-back" id="onb" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden><div class="pw onb" id="onb-box"></div></div>
@@ -3137,7 +3205,7 @@ const Track={
       const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
       if(!db||!user)return;
       this.db=db;this.owner=await user.isOwner();
-      if(this.owner){$('#tab-admin').hidden=false;if(currentTab==='admin')renderAdmin();return;}
+      if(this.owner){if(currentTab==='admin')renderAdmin();return;}
       const id=await user.id();if(!id)return;
       this.ref=db.doc('usage/'+id);
       const snap=await this.ref.get();
@@ -3275,7 +3343,7 @@ function setTab(t){
 }
 function updateTabDots(){
   ['case','fit','ac'].forEach(k=>{
-    const b=$('#tab-'+k);const has=!!ACTIVE[k];let d=b.querySelector('.live');
+    const b=$('#tab-'+k);if(!b)return;const has=!!ACTIVE[k];let d=b.querySelector('.live');
     if(has&&!d){d=document.createElement('span');d.className='live';d.setAttribute('aria-label','läuft');b.appendChild(d);}
     if(!has&&d)d.remove();
   });
@@ -3804,7 +3872,7 @@ async function downloadSheet(note){
   const say=t=>{if(note)note.textContent=t;};
   if(!dl){say(L('Herunterladen ist hier nicht verfügbar.','Downloading isn\'t available here.'));return;}
   const css=$$('style').map(x=>x.textContent).join('\n');
-  const html=`<!doctype html><html lang="${I18N.lang}" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Callback · ${esc(a.firm||'')}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300..800&display=swap"><style>${css}body{background:#fff}.app{padding-block:28px}@media print{.printbar{display:none}}</style></head><body><main class="app"><div class="printbar actions" style="margin-bottom:20px"><button class="btn primary" onclick="window.print()">${L('Als PDF speichern oder drucken','Save as PDF or print')}</button></div>${sheetBodyHTML(a.sheet,a)}</main></body></html>`;
+  const html=`<!doctype html><html lang="${I18N.lang}" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Callback · ${esc(a.firm||'')}</title><style>${css}body{background:#fff}.app{padding-block:28px}@media print{.printbar{display:none}}</style></head><body><main class="app"><div class="printbar actions" style="margin-bottom:20px"><button class="btn primary" onclick="window.print()">${L('Als PDF speichern oder drucken','Save as PDF or print')}</button></div>${sheetBodyHTML(a.sheet,a)}</main></body></html>`;
   try{await dl.save({filename:`Callback-${String(a.firm||'Spickzettel').replace(/[^\wäöüÄÖÜß -]+/g,'').trim().replace(/\s+/g,'-').slice(0,30)}-${L('Spickzettel','cheat-sheet')}.html`,data:html});say(L('Gespeichert.','Saved.'));}
   catch(e){say(e&&e.code==='declined'?'':L('Das Herunterladen hat nicht geklappt.','The download didn\'t work.'));}
 }
@@ -4042,6 +4110,21 @@ const Theme={
   }
 };
 Theme.init();
+/* footer: privacy and prototype notes, written per language instead of via the dictionary */
+function renderFootNote(){
+  const sm=$('#foot-note summary'),el=$('#foot-body');if(!el)return;
+  sm.textContent=L('Datenschutz & Hinweise','Privacy & notes');
+  const P=(h,de,en)=>`<p><b>${h}</b> ${L(de,en)}</p>`;
+  el.innerHTML=[
+    P(L('Prototyp.','Prototype.'),'Callback ist ein privates Projekt und kostenlos. Die Bewertungen sind Übungsfeedback, keine Vorhersage echter Ergebnisse.','Callback is a personal project and free to use. Ratings are practice feedback, not a prediction of real results.'),
+    P(L('Deine Daten bleiben bei dir.','Your data stays with you.'),'Lebenslauf, Antworten, Bewerbungen und Verlauf werden nur in deinem Browser gespeichert. Es gibt kein Konto und keinen eigenen Server. Zum Löschen entfernst du die Website-Daten dieser Seite in deinem Browser.','Your CV, answers, applications and history are stored only in your browser. There is no account and no server of our own. To delete them, clear this site’s data in your browser.'),
+    P(L('KI-Funktionen.','AI features.'),'Interviews, Feedback und Unterlagen-Check laufen nur, wenn du Callback in Claude öffnest. Dann gehen deine Eingaben zur Auswertung an Claude (Anthropic) und werden über deinen eigenen Claude-Zugang verarbeitet; es gelten die Datenschutzbestimmungen von Anthropic. Kontaktdaten aus dem Lebenslauf werden vorher entfernt. In der öffentlichen Demo wird nichts an eine KI gesendet.','Interviews, feedback and the document check only run when you open Callback in Claude. Your input is then sent to Claude (Anthropic) for evaluation and processed through your own Claude access; Anthropic’s privacy policy applies. Contact details are removed from your CV first. The public demo sends nothing to any AI.'),
+    P(L('Nutzungsstatistik.','Usage statistics.'),'Nur in der Claude-Version zählt Callback ohne Namen, an welchen Tagen welche Übungsarten genutzt werden und welche Punktzahlen herauskommen. Das dient dazu, den Prototyp zu verbessern. Antworten, Transkripte und Unterlagen werden dabei nicht erfasst. Die öffentliche Demo erfasst keine Nutzung.','Only in the Claude version does Callback count, without names, on which days which exercise types are used and which scores result. This helps improve the prototype. Answers, transcripts and documents are not recorded. The public demo records no usage.'),
+    P(L('Hosting.','Hosting.'),'Die öffentliche Demo liegt auf GitHub Pages. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse. Schriften werden von derselben Seite geladen, es gibt keine Inhalte von Drittanbietern.','The public demo is hosted on GitHub Pages. GitHub processes technically necessary access data such as your IP address. Fonts are served from the same site; there is no third-party content.'),
+    `<p>${L('Kontakt und Code','Contact and code')}: <a href="https://github.com/claussec/callback-interview-coach" target="_blank" rel="noopener">github.com/claussec/callback-interview-coach</a></p>`
+  ].join('');
+}
+renderFootNote();
 /* ambient: gentle pointer parallax + header hairline on scroll */
 (()=>{const a=document.getElementById('ambient'),top=document.querySelector('.top');let tx=0,ty=0,x=0,y=0,raf=0;
   const tick=()=>{x+=(tx-x)*.06;y+=(ty-y)*.06;a.style.setProperty('--mx',x.toFixed(3));a.style.setProperty('--my',y.toFixed(3));raf=Math.abs(tx-x)+Math.abs(ty-y)>.002?requestAnimationFrame(tick):0;};
@@ -4243,6 +4326,7 @@ function setLang(l,initial){
   setNumberLocale(l==='en'?'en-GB':'de-DE');
   $$('.langsw [data-lang]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===l)));
   if(typeof Theme!=='undefined')Theme.apply(Theme.get(),false);
+  if(typeof renderFootNote==='function')renderFootNote();
   if(initial)return;
   settings.uiLang=l;settings.lang=l;settings.fitLang=l;saveSettings(true);
   refreshSetupUI();renderLessons();renderDrillGrid();renderPath();renderHistory();renderMathAdapt();renderProfileBox();renderApps();renderAppBar();renderHome();renderLibrary();updateBackbar();
@@ -4754,7 +4838,7 @@ function reportHTML(rec){
   const fb=rec.feedback||{};
   const body=(rec.kind==='drill'?drillRecordHTML(rec):scorecardHTML(rec)+transcriptDetails(rec)).replace(/<details class="(model|tx)"/g,'<details open class="$1"').replace(/<button[^>]*class="say"[\s\S]*?<\/button>/g,'');
   return `<!doctype html><html lang="de" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Callback · ${esc(rec.title||'Bewertung')}</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..800;1,400..600&family=JetBrains+Mono:wght@400;600&display=swap">
+
 <style>${css}
 body{background:#fff}.app{padding-block:28px}.printbar{display:flex;gap:10px;align-items:center;margin-bottom:22px}
 @media print{.printbar{display:none}.app{padding:0;max-width:none}details>summary{list-style:none}.turn.int .body{box-shadow:none}}</style></head>

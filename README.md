@@ -30,6 +30,11 @@ There is no shortage of application advice. What is missing is a place where you
 |---|---|---|
 | ![Dark mode](screenshots/home-dark.jpg) | ![Mobile view](screenshots/mobile.jpg) | ![Onboarding](screenshots/onboarding.jpg) |
 
+## Privacy
+
+- **Public demo (GitHub Pages):** no AI calls, no tracking, nothing leaves the browser apart from loading the page itself from GitHub.
+- **Claude version:** AI features send the user's input to Claude (Anthropic) through the user's own Claude access. A pseudonymous usage count (days, exercise types, scores; no answers or documents) helps improve the prototype.
+
 ## Business model (concept)
 
 Freemium: short drills and tests are free, full simulations are limited per week. A time-limited Application Pass unlocks everything for the busy phase of an application.
@@ -37,7 +42,8 @@ Freemium: short drills and tests are free, full simulations are limited per week
 ## Tech
 
 - A single file (`index.html`) with HTML, CSS and JavaScript, no framework and no build step.
-- Data stays in the browser (localStorage). The CV is read locally, and contact details are removed before analysis.
+- Data stays in the browser (localStorage). There is no account and no backend. The CV is read locally, and contact details are removed before analysis.
+- No third-party requests: fonts are served from this repository, and the public demo has no tracking.
 - The AI features rely on the Claude Artifacts runtime. **They therefore do not run in the GitHub demo**; the home screen, design, tests and mental maths work. Running it standalone would need a small server that forwards AI requests with its own API key.
 
 ## How it was built
