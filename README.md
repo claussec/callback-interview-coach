@@ -2,48 +2,48 @@
 
 **Fail here. Not there.**
 
-Callback ist ein KI-gestützter Interview-Coach für Studierende und Berufseinsteiger. Man übt Vorstellungsgespräche, Assessment Center und Case Interviews mit einer KI und bekommt danach strukturiertes Feedback, bevor es im echten Gespräch darauf ankommt.
+Callback is an AI-powered interview coach for students and graduates. You rehearse job interviews, assessment centres and case interviews with an AI and get structured feedback before it counts in the real conversation.
 
-> **Status:** Prototyp. Entstanden als eigenes Projekt, um eine Produktidee und ihr Geschäftsmodell greifbar zu machen.
+> **Status:** Prototype. A personal project to make a product idea and its business model tangible.
 
 **Demo:** https://claussec.github.io/callback-interview-coach/
 
-![Startseite von Callback](screenshots/home-light.jpg)
+![Callback home screen](screenshots/home-light.jpg)
 
-## Die Idee
+## The idea
 
-Bewerbungsratgeber gibt es viele. Was fehlt, ist ein Ort, an dem man Fehler machen darf, bevor sie etwas kosten. Callback führt Schritt für Schritt: Statt Menüs und Reitern zeigt die Startseite immer nur den einen nächsten Schritt, der für die eigene Bewerbung gerade am meisten bringt.
+There is no shortage of application advice. What is missing is a place where you are allowed to make mistakes before they cost you anything. Callback guides you step by step: instead of menus and tabs, the home screen only ever shows the one next step that helps your application most right now.
 
-## Funktionen
+## Features
 
-- **Geführter Einstieg:** Ein Satz beschreibt das Ziel („Ich übe für Trainee Finance bei Siemens …“). Der Fachbereich wird automatisch aus Stelle und Stellenanzeige erkannt und lässt sich ändern.
-- **Interview-Simulation:** Die KI spielt Recruiter oder Fachbereich und fragt passend zu Lebenslauf und Stelle.
-- **Assessment Center:** Gruppendiskussion, Rollenspiele, Präsentation und Postkorb mit Bewertung wie von echten Beobachtern.
-- **Case Interviews** für Beratung und strategische Rollen.
-- **Unterlagen-Check:** Lebenslauf gegen die Stellenanzeige, daraus entstehen die wahrscheinlichsten Fragen.
-- **Kurzübungen und Tests:** Selbstpräsentation, Rückfragen, Kopfrechnen und Zahlenreihen.
-- **Spickzettel** für den Tag des Gesprächs.
-- **Fortschritt:** sechs Meilensteine im Ring um die animierte Kugel.
-- Deutsch und Englisch, Hell- und Dunkelmodus, für Handy und Desktop.
+- **Guided start:** One sentence describes your goal ("I'm practising for Trainee Finance at Siemens …"). The field is detected automatically from the role and job ad and can be edited.
+- **Interview simulation:** The AI plays the recruiter or hiring manager and asks questions based on your CV and the role.
+- **Assessment centre:** Group discussion, role plays, presentation and in-tray exercise, scored like real assessors would.
+- **Case interviews** for consulting and strategy roles.
+- **Document check:** Your CV against the job ad, which also produces the questions you are most likely to get.
+- **Short drills and tests:** Self-introduction, questions for the interviewer, mental maths and number series.
+- **Cheat sheet** for the day of the interview.
+- **Progress:** six milestones on the ring around the animated orb.
+- German and English, light and dark mode, mobile and desktop.
 
-| Dunkelmodus | Handy | Einführung |
+| Dark mode | Mobile | Onboarding |
 |---|---|---|
-| ![Dunkelmodus](screenshots/home-dark.jpg) | ![Handyansicht](screenshots/mobile.jpg) | ![Einführung](screenshots/onboarding.jpg) |
+| ![Dark mode](screenshots/home-dark.jpg) | ![Mobile view](screenshots/mobile.jpg) | ![Onboarding](screenshots/onboarding.jpg) |
 
-## Geschäftsmodell (Konzept)
+## Business model (concept)
 
-Freemium: Kurzübungen und Tests sind kostenlos, ganze Simulationen sind pro Woche begrenzt. Ein zeitlich begrenzter Bewerbungs-Pass schaltet alles für die heiße Phase einer Bewerbung frei.
+Freemium: short drills and tests are free, full simulations are limited per week. A time-limited Application Pass unlocks everything for the busy phase of an application.
 
-## Technik
+## Tech
 
-- Eine einzige Datei (`index.html`) mit HTML, CSS und JavaScript, ohne Framework und ohne Build-Schritt.
-- Daten bleiben im Browser (localStorage). Der Lebenslauf wird lokal gelesen, Kontaktdaten werden vor der Auswertung entfernt.
-- Die KI-Funktionen nutzen die Laufzeitumgebung von Claude-Artifacts. **In der GitHub-Demo laufen sie deshalb nicht**; Startseite, Design, Tests und Kopfrechnen funktionieren. Für einen eigenständigen Betrieb bräuchte es einen kleinen Server, der die KI-Anfragen mit einem eigenen API-Schlüssel weiterleitet.
+- A single file (`index.html`) with HTML, CSS and JavaScript, no framework and no build step.
+- Data stays in the browser (localStorage). The CV is read locally, and contact details are removed before analysis.
+- The AI features rely on the Claude Artifacts runtime. **They therefore do not run in the GitHub demo**; the home screen, design, tests and mental maths work. Running it standalone would need a small server that forwards AI requests with its own API key.
 
-## Entstehung
+## How it was built
 
-Idee, Produktkonzept, Nutzerführung und Gestaltung stammen von mir. Den Code habe ich gemeinsam mit der KI Claude (Anthropic) entwickelt: Ich habe beschrieben, entschieden und getestet, Claude hat einen Großteil des Codes geschrieben.
+The idea, product concept, user flow and design direction are mine. I developed the code together with the AI Claude (Anthropic): I described, decided and tested, and Claude wrote most of the code.
 
-## Lizenz
+## License
 
 [MIT](LICENSE) © 2026 Clemens Claussen
