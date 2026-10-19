@@ -7,7 +7,7 @@ Where Callback could go next, roughly in order of impact. Each item names the pa
 | | Idea | Why | Touches |
 |---|---|---|---|
 | 1 | **Standalone AI backend** | The public demo has no AI. A small serverless proxy (for example a Cloudflare Worker) with its own API key, rate limit and abuse protection makes every feature work outside Claude. | `aiCall()` / `aiJson()` only |
-| 2 | **Spoken interviews** | Real interviews are spoken. Speech input and read-aloud already exist; next is a fully voice-driven session with feedback on pace and filler words. | sessions, new rubric criteria |
+| 2 | **Spoken interviews** | *Done:* speech input, read-aloud, pace and filler analysis. Next: a hands-free session that listens and answers without clicks, and pause detection. | sessions, `speechStats()` |
 | 3 | **Split `index.html` into ES modules** | Content is already separate. Next: guidance engine, prompt builders, sessions and UI as modules, still without a build step. | whole app |
 | 4 | **Accounts and sync** | Practise on the laptop, read the cheat sheet on the phone. Optional login with end-to-end encrypted history. | `Store`, settings |
 
@@ -16,9 +16,9 @@ Where Callback could go next, roughly in order of impact. Each item names the pa
 | | Idea | Why | Touches |
 |---|---|---|---|
 | 5 | **Company question banks** | Typical questions and values per employer (public sources), so "Trainee at Siemens" feels different from "Trainee at Aldi". | new content file, prompt builders |
-| 6 | **Progress over time** | Scores per criterion across sessions as a chart, so students see the STAR answers improve. | history view |
+| 6 | **Progress over time** | *Done:* chart per practice type and change per criterion. Next: weekly goals and reminders before the interview date. | `progressData()` |
 | 7 | **More fields and languages** | Law, medicine, public sector in depth; French and Spanish interfaces. | `areas.js`, new `i18n-*.js` |
-| 8 | **Video interview practice** | Camera on, answer against a timer like in one-way video interviews (HireVue style). | new session type |
+| 8 | **Video interview practice** | *Done:* timed one-way interviews with local recording. Next: feedback on eye contact and framing from the video itself (on-device), and employer-specific question sets. | `Video` |
 
 ## Later: for organisations
 

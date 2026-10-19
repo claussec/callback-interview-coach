@@ -95,7 +95,7 @@ const CRIT_DRILL={
   fit:{struktur:'star',substanz:'star',motivation:'motivation',wirkung:'pitch',vorbereitung:'heikel',argumente:'motivation',taktik:'heikel',fachwissen:'star',anwendung:'star',luecken:'heikel'},
   ac:{kommunikation:'pitch',struktur:'synthese',sozial:'star',loesung:'synthese'}
 };
-const KIND_LABEL={case:'Case',fit:'Interview',ac:'Assessment Center',drill:'Übung',math:'Test',docs:'Unterlagen'};
+const KIND_LABEL={case:'Case',fit:'Interview',ac:'Assessment Center',drill:'Übung',math:'Test',docs:'Unterlagen',video:'Video-Interview'};
 
 const FRAMEWORKS={
   profit:{name:'Profitabilität',root:'Warum sinkt der Gewinn, und was tun?',branches:[['Umsatz','Preis: Listenpreis, Rabatte, Mix','Menge: Marktgröße × Marktanteil','nach Produkten, Kunden, Regionen, Kanälen'],['Kosten','variable Kosten: Material, Logistik, Provisionen','Fixkosten: Personal, Miete, IT','Kosten pro Stück im Vergleich zum Wettbewerb'],['Vergleich','Entwicklung über die Zeit','Markt und Wettbewerber als Maßstab','interne oder externe Ursache?']],tip:'Erst klären, ob das Problem im Umsatz oder in den Kosten liegt, dann tiefer bohren. Immer mit dem Markt vergleichen.'},

@@ -1266,6 +1266,82 @@ input[type="date"]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3
 ::selection{background:color-mix(in srgb,var(--accent) 32%,transparent)}
 :focus-visible{outline-color:var(--accent)}
 @media (prefers-reduced-motion: reduce){.cb-arc{animation:none;stroke-dashoffset:0}.cb-dot{animation:none;transform:none}.cb-spin{transition:none}.ring-head{animation:none;transform:rotate(var(--a))}}
+/* speech analysis */
+.sp-chip{grid-column:2;justify-self:end;font-size:12.5px;color:var(--muted);margin-top:-8px}
+.speech .sp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px}
+.speech .sp-grid>div{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:16px;background:var(--surface)}
+.speech .sp-grid b{font-size:28px;font-weight:650;letter-spacing:-.03em;line-height:1.1}
+.speech .sp-grid span{font-size:13px;color:var(--muted)}
+.speech .sp-grid .pill{align-self:flex-start;margin-top:6px;color:inherit}
+.sp-tip{margin:10px 0 0;padding:10px 14px;border-left:2px solid var(--accent);font-size:14.5px}
+@media (max-width:560px){.speech .sp-grid{grid-template-columns:1fr}.sp-chip{grid-column:1}}
+/* video interview */
+.pw.video{max-width:980px}
+.v-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.v-time{display:inline-flex;gap:6px;margin-left:6px;vertical-align:middle}
+.chips button[aria-pressed="true"],.v-self button[aria-checked="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.v-stage{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:24px;align-items:start}
+.v-cam{position:relative;border-radius:22px;overflow:hidden;background:#0b0b0d;aspect-ratio:4/3;display:grid;place-items:center}
+.v-cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.v-cam textarea{width:100%;height:100%;border:0;border-radius:0;resize:none;padding:18px;font:inherit;font-size:16px;background:var(--surface);color:var(--ink)}
+.v-audio{display:flex;flex-direction:column;align-items:center;gap:10px;color:#fff;opacity:.8}
+.v-audio svg{width:42px;height:42px}
+.v-rec{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font-size:12.5px;font-weight:600}
+.v-rec i{width:8px;height:8px;border-radius:50%;background:#ff453a;animation:vblink 1s steps(2) infinite}
+@keyframes vblink{50%{opacity:.2}}
+.v-side{display:flex;flex-direction:column;gap:16px}
+.v-q{margin:0;font-family:var(--font-display);font-size:clamp(21px,2.4vw,27px);font-weight:600;letter-spacing:-.025em;line-height:1.25}
+.v-q.sm{font-size:17px}
+.v-clock{position:relative;width:88px;height:88px}
+.v-clock svg{width:100%;height:100%;transform:rotate(-90deg)}
+.v-tr{fill:none;stroke:var(--line);stroke-width:3}
+.v-ar{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .2s linear}
+.v-clock b{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:650;font-variant-numeric:tabular-nums}
+.v-ph{font-size:13px;font-weight:600;color:var(--muted);margin-top:-8px}
+.v-live-tx{margin:0;font-size:14px;color:var(--muted);max-height:120px;overflow:auto}
+.v-list{display:flex;flex-direction:column;gap:18px}
+.v-item{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:20px;background:var(--surface)}
+.v-item video{width:100%;max-width:420px;border-radius:14px;background:#000}
+.v-item audio{width:100%;max-width:420px}
+.v-item .sp-chip{justify-self:start;margin:0;grid-column:auto}
+.v-ans{margin:0;font-size:15px;white-space:pre-wrap}
+.v-self{display:flex;flex-direction:column;gap:10px}
+.v-sr{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.v-sr .chips{display:inline-flex;gap:6px}
+.v-sr button,.v-time button{appearance:none;font:inherit;font-size:14px;min-width:38px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer}
+@media (max-width:760px){.v-stage{grid-template-columns:1fr}.v-time{display:flex;margin:6px 0 0}}
+/* tester feedback card */
+.fbq{position:fixed;z-index:55;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(440px,calc(100vw - 32px));animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.fbq-in{display:flex;flex-direction:column;gap:12px;padding:18px 20px;border-radius:22px;background:var(--sheet);box-shadow:0 20px 60px -12px rgba(0,0,0,.35);border:1px solid var(--line)}
+.fbq-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fbq-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fbq-r button{appearance:none;font:inherit;font-weight:600;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.fbq-r button[aria-checked="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.fbq-r span{font-size:12px;color:var(--muted);margin-left:4px}
+.fbq textarea{width:100%;font:inherit;font-size:14.5px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);resize:vertical}
+.fbq-bar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fb-sum{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap}
+.fb-sum b{font-size:40px;font-weight:650;letter-spacing:-.04em;line-height:1;margin-right:6px}
+.fb-sum span{color:var(--muted);font-size:14px}
+.fb-dist{display:flex;gap:8px;align-items:flex-end;height:70px}
+.fb-dist div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;width:22px}
+.fb-dist i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.fb-dist span{font-size:11px;color:var(--muted)}
+.fb-texts{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+/* progress */
+.pg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:10px}
+.pg-card{display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:20px;background:var(--surface)}
+.pg-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pg-delta{font-size:14px}
+.pg-delta b{font-size:18px}
+.pgl{width:100%;height:auto;display:block}
+.pgl .g{stroke:var(--line);stroke-width:1}
+.pgl .g4{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 4;opacity:.45}
+.pgl .ln{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.pgl .pt{fill:var(--sheet);stroke:var(--accent);stroke-width:2}
+.pg-crit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.pg-crit li{display:flex;justify-content:space-between;gap:10px}
+.pg-crit li span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
 /* demo replay */
 .pw.demo{max-width:760px}
 .demo-log{margin-top:4px}
@@ -1652,6 +1728,8 @@ body{background:transparent}
   <div class="pw-back" id="goal-dlg" role="dialog" aria-modal="true" aria-labelledby="goal-title" hidden><div class="pw goal" id="goal-box"></div></div>
   <div class="pw-back" id="sheet-dlg" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden><div class="pw sheet" id="sheet-box"></div></div>
   <div class="pw-back onb-back" id="onb" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden><div class="pw onb" id="onb-box"></div></div>
+  <div class="fbq" id="fbq" hidden></div>
+  <div class="pw-back" id="video-dlg" role="dialog" aria-modal="true" aria-labelledby="video-title" hidden><div class="pw video" id="video-box"></div></div>
   <div class="pw-back" id="demo-dlg" role="dialog" aria-modal="true" aria-labelledby="demo-title" hidden><div class="pw demo" id="demo-box"></div></div>
   <div class="pw-back" id="paywall" role="dialog" aria-modal="true" aria-labelledby="pw-title" hidden><div class="pw" id="pw-box"></div></div>
 </main>
@@ -1660,6 +1738,7 @@ body{background:transparent}
 <script src="content/drills.js"></script>
 <script src="content/examples.js"></script>
 <script src="content/areas.js"></script>
+<script src="content/speech.js"></script>
 <script src="content/i18n-en.js"></script>
 <script>
 /* ===================================================================
@@ -3067,6 +3146,10 @@ const Track={
     else if(type==='wtp')b.wtp=val;
     this.write();
   },
+  feedback(e){
+    if(!this.on)return;
+    this.touch();const d=this.data;d.fb=[...(d.fb||[]),e].slice(-10);this.write();
+  },
   log(kind,score,extra){
     if(!this.on)return;
     this.touch();const d=this.data;
@@ -3082,6 +3165,18 @@ const Track={
 };
 
 let adminCache=null;
+function fbSection(U){
+  const all=U.flatMap(u=>(u.fb||[]).filter(x=>x&&x.r));
+  if(!all.length)return `<section><h2 class="h3">Rückmeldungen</h2><p class="muted small" style="margin:0">Noch keine. Testnutzer werden nach der 1., 4. und 10. Übung kurz gefragt, wie hilfreich sie war.</p></section>`;
+  const avgR=Math.round(all.reduce((a,x)=>a+x.r,0)/all.length*10)/10;
+  const dist=[1,2,3,4,5].map(n=>all.filter(x=>x.r===n).length);const mx=Math.max(1,...dist);
+  const texts=all.filter(x=>x.t).sort((a,b)=>String(b.d).localeCompare(String(a.d))).slice(0,30);
+  return `<section><h2 class="h3">Rückmeldungen</h2>
+    <div class="fb-sum"><div><b>${fmt1(avgR)}</b><span>/ 5 hilfreich · ${all.length} ${all.length===1?'Antwort':'Antworten'} von ${new Set(U.filter(u=>(u.fb||[]).length).map(u=>u.first)).size} Personen</span></div>
+    <div class="fb-dist" role="img" aria-label="Verteilung: ${dist.join(', ')}">${dist.map((v,i)=>`<div><i style="height:${Math.round(v/mx*100)}%"></i><span>${i+1}</span></div>`).join('')}</div></div>
+    ${texts.length?`<ul class="fb-texts">${texts.map(x=>`<li><span class="pill neutral">${x.r}</span> ${esc(x.t)} <span class="small muted">· ${esc(trStr(KIND_LABEL[x.k]||x.k))}</span></li>`).join('')}</ul>`:''}
+  </section>`;
+}
 async function renderAdmin(force){
   const body=$('#admin-body');if(!body)return;
   if(!Track.owner||!Track.db){body.innerHTML='<p class="muted">Dieser Bereich ist nur für die Person sichtbar, die Callback erstellt hat.</p>';return;}
@@ -3095,12 +3190,12 @@ async function renderAdmin(force){
   const daysAgo=iso=>(now-new Date(iso).getTime())/DAY;
   const active7=U.filter(u=>daysAgo(u.last)<=7).length;
   const returning=U.filter(u=>(u.days||[]).length>=2).length;
-  const tot={case:0,fit:0,ac:0,docs:0,drill:0,math:0};U.forEach(u=>Object.keys(tot).forEach(k=>tot[k]+=(u.n&&u.n[k])||0));
+  const tot={case:0,fit:0,ac:0,docs:0,drill:0,math:0,video:0};U.forEach(u=>Object.keys(tot).forEach(k=>tot[k]+=(u.n&&u.n[k])||0));
   const sessions=Object.values(tot).reduce((a,b)=>a+b,0);
   const caseScores=U.flatMap(u=>(u.ev||[]).filter(e=>['case','fit','ac'].includes(e.k)&&e.s!=null).map(e=>e.s));
   const simsOf=u=>((u.n&&u.n.case)||0)+((u.n&&u.n.fit)||0)+((u.n&&u.n.ac)||0);
   const B=u=>u.biz||{pw:0,pwr:{},up:0,down:0,wtp:''};
-  const f1=U.filter(u=>simsOf(u)+((u.n&&u.n.docs)||0)>=1).length,f2=U.filter(u=>simsOf(u)>=2||(u.days||[]).length>=2).length,f3=U.filter(u=>B(u).pw>0).length,f4=U.filter(u=>B(u).up>0).length;
+  const f1=U.filter(u=>simsOf(u)+((u.n&&u.n.docs)||0)+((u.n&&u.n.video)||0)>=1).length,f2=U.filter(u=>simsOf(u)>=2||(u.days||[]).length>=2).length,f3=U.filter(u=>B(u).pw>0).length,f4=U.filter(u=>B(u).up>0).length;
   const wt={ja:0,spaeter:0,teuer:0,nein:0};U.forEach(u=>{const w=B(u).wtp;if(w in wt)wt[w]++;});const wn=Object.values(wt).reduce((a,b)=>a+b,0);
   const reasons={};U.forEach(u=>Object.entries(B(u).pwr||{}).forEach(([k,v])=>reasons[k]=(reasons[k]||0)+v));
   const fRow=(l,v,base)=>`<span>${l}</span><div class="fb" role="img" aria-label="${v} von ${base}"><i style="width:${base?Math.round(v/base*100):0}%"></i></div><span class="v">${v}${base?` · ${Math.round(v/base*100)} %`:''}</span>`;
@@ -3111,11 +3206,13 @@ async function renderAdmin(force){
     <h2 class="h3" style="margin-top:22px">„Würdest du 39 € für drei Monate zahlen?“</h2>
     ${wn?`<div class="funnel">${fRow('Ja, sofort',wt.ja,wn)}${fRow('Ja, kurz vor dem Gespräch',wt.spaeter,wn)}${fRow('Eher zu teuer',wt.teuer,wn)}${fRow('Nein',wt.nein,wn)}</div><p class="small muted" style="margin:10px 0 0">${wn} ${wn===1?'Antwort':'Antworten'}. Zahlungsbereit: ${Math.round((wt.ja+wt.spaeter)/wn*100)} %.</p>`:'<p class="muted small">Noch keine Antworten. Die Frage erscheint in der Bezahlschranke.</p>'}
   </section>`:'';
+  const imp=U.map(u=>(u.ev||[]).filter(e=>['case','fit','ac','video'].includes(e.k)&&e.s!=null).map(e=>e.s)).filter(v=>v.length>=3).map(v=>{const n=Math.min(3,Math.floor(v.length/2));return avg(v.slice(-n))-avg(v.slice(0,n));});
   const tiles=`<div class="tiles">
     <div class="tile"><div class="eyebrow">Nutzer</div><b>${U.length}</b><span>seit dem ersten Besuch</span></div>
     <div class="tile"><div class="eyebrow">Aktiv, 7 Tage</div><b>${active7}</b><span>${U.length?Math.round(active7/U.length*100)+' % aller Nutzer':'–'}</span></div>
     <div class="tile"><div class="eyebrow">Wiederkehrend</div><b>${returning}</b><span>an mindestens 2 Tagen aktiv</span></div>
-    <div class="tile"><div class="eyebrow">Einheiten</div><b>${sessions}</b><span>${tot.fit} Interviews · ${tot.ac} AC · ${tot.case} Cases · ${tot.docs} Unterlagen · ${tot.drill} Übungen · ${tot.math} Tests</span></div>
+    <div class="tile"><div class="eyebrow">Einheiten</div><b>${sessions}</b><span>${tot.fit} Interviews · ${tot.ac} AC · ${tot.case} Cases · ${tot.docs} Unterlagen · ${tot.drill} Übungen · ${tot.math} Tests · ${tot.video} Video</span></div>
+    <div class="tile"><div class="eyebrow">Verbesserung</div><b>${imp.length?(avg(imp)>=0?"+":"−")+fmt1(Math.abs(avg(imp))):"–"}</b><span>${imp.length?`Ø pro Person, erste gegen letzte Simulationen · ${imp.length} ${imp.length===1?"Person":"Personen"} mit ≥ 3`:"ab 3 Simulationen pro Person"}</span></div>
     <div class="tile"><div class="eyebrow">Ø Simulation</div><b>${fmt1(avg(caseScores))}<small>/ 5</small></b><span>${caseScores.length} bewertete Simulationen</span></div>
   </div>`;
   /* active people per week, last 8 weeks (Monday-based) */
@@ -3132,7 +3229,7 @@ async function renderAdmin(force){
   }).join('');
   const table=U.length?`<section><h2 class="h3">Nutzer im Einzelnen</h2><div class="tablewrap"><table class="mtable utable"><thead><tr><th>Nutzer</th><th class="num">Erster Besuch</th><th class="num">Zuletzt</th><th class="num">Aktive Tage</th><th class="num">Interviews</th><th class="num">AC</th><th class="num">Cases</th><th class="num">Unterlagen</th><th class="num">Übungen</th><th class="num">Tests</th><th class="num">Ø Simulation</th>${PLANS?'<th>Pass</th><th>39 €?</th>':''}</tr></thead><tbody>${rows}</tbody></table></div></section>`:'';
   body.innerHTML=`<div style="display:flex;flex-direction:column;gap:26px">
-    ${U.length?tiles+(PLANS?funnel:`<section><h2 class="h3">Nutzung</h2><div class="funnel">${fRow('Nutzer',U.length,U.length)}${fRow('Erstes Feedback erhalten',f1,U.length)}${fRow('Wiedergekommen',f2,U.length)}</div></section>`)+week+table:'<div class="empty"><h2 class="h3">Noch keine Nutzer erfasst</h2><p class="muted">Sobald jemand anderes Callback öffnet und dabei Daten speichern darf, erscheint er hier, zusammen mit dem Nachfrage-Trichter.</p></div>'}
+    ${U.length?tiles+fbSection(U)+(PLANS?funnel:`<section><h2 class="h3">Nutzung</h2><div class="funnel">${fRow('Nutzer',U.length,U.length)}${fRow('Erstes Feedback erhalten',f1,U.length)}${fRow('Wiedergekommen',f2,U.length)}</div></section>`)+week+table:'<div class="empty"><h2 class="h3">Noch keine Nutzer erfasst</h2><p class="muted">Sobald jemand anderes Callback öffnet und dabei Daten speichern darf, erscheint er hier, zusammen mit dem Nachfrage-Trichter.</p></div>'}
     <p class="privacy"><b>Wer erfasst wird:</b> Mitgezählt wird nur, wer in diesem Artefakt Daten speichern darf. Lädst du Tester per E-Mail ein, gib ihnen im Teilen-Menü eine Rolle mit Bearbeitungsrecht und schalte den öffentlichen Link aus. Wer nur über den öffentlichen Link kommt, wird nicht erfasst, und sein Verlauf bleibt in seinem Browser.</p>
     <div class="actions"><button type="button" class="btn small" id="admin-refresh">Aktualisieren</button></div>
   </div>`;
@@ -3884,6 +3981,8 @@ function nextStep(){
 function quickStep(){
   const T=TRACKS[settings.track]||TRACKS.allgemein,W=weakSpots(),L2=Store.list,today=localDay();
   const ar=areaDef((activeApp()||{}).area);
+  const vidDone=L2.some(r=>r.kind==='video'),practised=L2.some(r=>['fit','ac','case','drill'].includes(r.kind));
+  if(!vidDone&&(AI.status==='unavailable'||practised))return {t:L('Video-Interview','Video interview'),d:L('Kamera an, Antwort gegen die Uhr.','Camera on, answer against the clock.'),min:6,act:'video'};
   if(T.math||W.mathWeak||(ar&&ar.math)){const done=L2.some(r=>r.kind==='math'&&localDay(new Date(r.date))===today);return {t:L('Kopfrechnen & Zahlenreihen','Mental maths & number series'),d:done?L('Heute schon geübt. Noch eine Runde?','Already practised today. One more round?'):L('Wie im Einstellungstest. Ohne KI, unbegrenzt.','Like in an aptitude test. No AI, unlimited.'),min:3,act:'math'};}
   const pick=['rueckfragen','heikel','motivation','star'].find(k=>!L2.some(r=>r.kind==='drill'&&r.drill===k))||'heikel';
   const dl=DRILLS[pick];return {t:trStr(dl.label),d:trStr(dl.desc),min:dl.min,act:'drill:'+pick};
@@ -3907,6 +4006,324 @@ function goalSentence(a){
   return `<p class="goal-line">${L('Ich übe für','I’m practising for')} ${chip(a&&a.position,L('Stelle','role'))} ${L('bei','at')} ${chip(a&&a.firm,L('Firma','company'))} ${L('im Bereich','in')} ${chip(ar,L('Bereich','field'))}${a&&a.date?` · ${chip(d>=0?(d===0?L('heute','today'):d===1?L('morgen','tomorrow'):L(`in ${d} Tagen`,`in ${d} days`)):L('Termin vorbei','date passed'),'')}`:` · ${chip('',L('Termin?','date?'))}`}</p>
     <p class="goal-sub">${a&&a.areaAuto!==false&&ar?`<span class="auto-tag">${L('Bereich automatisch erkannt','Field detected automatically')}</span> · `:''}${esc(trStr(T.label))}${(settings.apps||[]).length>1?` · <button type="button" class="linkbtn" data-goal>${L('Andere Bewerbung','Other application')}</button>`:''}</p>`;
 }
+/* ---------------- speech analysis ----------------
+   For answers given by microphone: speaking pace and filler words. Text answers get none.
+   Word lists and pace limits live in content/speech.js. */
+function speechStats(text,sec,lang){
+  const low=' '+String(text||'').toLowerCase().replace(/[.,;:!?„“"()…–-]+/g,' ').replace(/\s+/g,' ')+' ';
+  const words=low.trim()?low.trim().split(' ').length:0;
+  const fill={};let fillN=0;
+  for(const f of (FILLERS[lang]||FILLERS.de)){
+    const n=low.split(' '+f+' ').length-1;
+    if(n){fill[f]=n;fillN+=n;}
+  }
+  return {words,sec:Math.round(sec),wpm:sec>=5?Math.round(words/(sec/60)):null,fill,fillN};
+}
+function speechSummary(list){
+  list=(list||[]).filter(x=>x&&x.words);if(!list.length)return null;
+  const words=list.reduce((a,x)=>a+x.words,0),sec=list.reduce((a,x)=>a+x.sec,0);
+  const fill={};list.forEach(x=>Object.entries(x.fill).forEach(([k,v])=>fill[k]=(fill[k]||0)+v));
+  const fillN=Object.values(fill).reduce((a,b)=>a+b,0);
+  return {answers:list.length,words,sec,wpm:sec>=5?Math.round(words/(sec/60)):null,fill,fillN,per100:words?Math.round(fillN/words*1000)/10:0};
+}
+function paceVerdict(wpm){
+  if(wpm==null)return {cls:'neutral',txt:L('zu kurz zum Messen','too short to measure')};
+  if(wpm<PACE.lo)return {cls:'warn',txt:L('eher langsam','rather slow')};
+  if(wpm>PACE.hi)return {cls:'warn',txt:L('eher schnell','rather fast')};
+  return {cls:'good',txt:L('gutes Tempo','good pace')};
+}
+function topFillers(fill,n=3){return Object.entries(fill||{}).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([k,v])=>`„${k}“ ×${v}`).join(', ');}
+function speechChipHTML(sp){
+  if(!sp||!sp.words)return '';
+  const parts=[sp.wpm!=null?`${sp.wpm} ${L('Wörter/Min.','words/min')}`:null,sp.fillN?`${sp.fillN} ${sp.fillN===1?L('Füllwort','filler'):L('Füllwörter','fillers')} (${topFillers(sp.fill,2)})`:L('keine Füllwörter','no fillers')].filter(Boolean);
+  return `<div class="sp-chip" title="${esc(L('Gemessen beim Sprechen per Mikrofon','Measured while speaking by microphone'))}">${esc(parts.join(' · '))}</div>`;
+}
+function speechHTML(sp){
+  if(!sp)return '';
+  const pv=paceVerdict(sp.wpm);
+  const fillTxt=sp.fillN?L(`${sp.fillN} Füllwörter, das sind ${fmt1(sp.per100)} pro 100 Wörter. Am häufigsten: ${topFillers(sp.fill)}.`,`${sp.fillN} fillers, ${fmt1(sp.per100)} per 100 words. Most frequent: ${topFillers(sp.fill)}.`):L('Keine Füllwörter erkannt.','No fillers detected.');
+  const tip=sp.per100>3?L('Tipp: Statt „äh“ lieber eine kurze Pause. Pausen wirken souverän, Füllwörter unsicher.','Tip: pause briefly instead of saying “um”. Pauses sound confident, fillers sound unsure.'):sp.wpm!=null&&sp.wpm>PACE.hi?L('Tipp: Nach jedem Kernsatz kurz absetzen. Wer schnell spricht, wirkt nervös und wird schlechter verstanden.','Tip: pause after each key sentence. Speaking fast sounds nervous and is harder to follow.'):sp.wpm!=null&&sp.wpm<PACE.lo?L('Tipp: Antwort vorher in drei Stichpunkten ordnen, dann fließt sie leichter.','Tip: sort your answer into three points first, then it flows more easily.'):'';
+  return `<section class="speech"><h3 class="h3">${L('Sprechanalyse','Speech analysis')}</h3>
+    <div class="sp-grid">
+      <div><div class="eyebrow">${L('Tempo','Pace')}</div><b>${sp.wpm!=null?sp.wpm:'–'}</b><span>${L('Wörter/Min.','words/min')}</span><span class="pill ${pv.cls}">${esc(pv.txt)}</span></div>
+      <div><div class="eyebrow">${L('Füllwörter','Fillers')}</div><b>${fmt1(sp.per100)}</b><span>${L('pro 100 Wörter','per 100 words')}</span></div>
+      <div><div class="eyebrow">${L('Gesprochen','Spoken')}</div><b>${fmtTime(sp.sec)}</b><span>${sp.answers===1?L('1 Antwort','1 answer'):L(`${sp.answers} Antworten`,`${sp.answers} answers`)}</span></div>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">${esc(fillTxt)} ${L(`Ruhiges Sprechtempo liegt bei etwa ${PACE.lo} bis ${PACE.hi} Wörtern pro Minute.`,`A calm pace is about ${PACE.lo} to ${PACE.hi} words per minute.`)}</p>
+    ${tip?`<p class="sp-tip">${esc(tip)}</p>`:''}
+  </section>`;
+}
+/* ---------------- progress over time ----------------
+   Scores per session in order, per kind of practice, plus each criterion's change from the
+   first sessions to the latest ones. This is what shows whether practising works. */
+function progressData(list){
+  const out=[];
+  for(const k of ['fit','ac','case','video']){
+    const rs=list.filter(r=>r.kind===k&&r.score!=null&&r.feedback).slice().reverse();
+    if(rs.length<2)continue;
+    const n=Math.min(3,Math.floor(rs.length/2));
+    const first=rs.slice(0,n),last=rs.slice(-n);
+    const ids=new Map();rs.forEach(r=>(r.feedback.kriterien||[]).forEach(c=>{if(!ids.has(c.id))ids.set(c.id,c.label);}));
+    const at=(group,id)=>avg(group.map(r=>((r.feedback.kriterien||[]).find(c=>c.id===id)||{}).punkte).filter(x=>x!=null));
+    const crit=[...ids].map(([id,label])=>({id,label,from:at(first,id),to:at(last,id)})).filter(c=>c.from!=null&&c.to!=null);
+    out.push({kind:k,points:rs.map(r=>({s:r.score,d:r.date})),from:avg(first.map(r=>r.score)),to:avg(last.map(r=>r.score)),n,crit});
+  }
+  return out;
+}
+function progressSVG(points){
+  const W=320,H=120,px=14,py=12,n=points.length;
+  const x=i=>px+(n===1?0:i*(W-2*px)/(n-1)),y=v=>py+(5-v)*(H-2*py)/4;
+  const path=points.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(p.s).toFixed(1)}`).join('');
+  return `<svg class="pgl" viewBox="0 0 ${W} ${H}" role="img" aria-label="${L('Bewertungen nacheinander','Scores in order')}: ${points.map(p=>fmt1(p.s)).join(', ')}">
+    ${[1,2,3,4,5].map(v=>`<line x1="${px}" x2="${W-px}" y1="${y(v)}" y2="${y(v)}" class="${v===4?'g4':'g'}"></line>`).join('')}
+    <path d="${path}" class="ln"></path>${points.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.s).toFixed(1)}" r="3.5" class="pt"><title>${fmt1(p.s)} · ${dateShort.format(new Date(p.d))}</title></circle>`).join('')}
+  </svg>`;
+}
+function deltaHTML(from,to){const d=Math.round((to-from)*10)/10;return `<span class="${d>0?'trend-up':d<0?'trend-down':'muted'}">${d>0?'+':d<0?'−':'±'}${fmt1(Math.abs(d))}</span>`;}
+function progressHTML(list){
+  const P=progressData(list);
+  if(!P.length)return '';
+  return `<section class="progress"><h2 class="h3">${L('Dein Fortschritt','Your progress')}</h2>
+    <div class="pg-grid">${P.map(p=>`<div class="pg-card">
+      <div class="pg-head"><span class="eyebrow">${esc(trStr(KIND_LABEL[p.kind]))} · ${p.points.length} ${L('Mal','times')}</span><span class="pg-delta">${fmt1(p.from)} → <b>${fmt1(p.to)}</b> ${deltaHTML(p.from,p.to)}</span></div>
+      ${progressSVG(p.points)}
+      ${p.crit.length?`<ul class="pg-crit">${p.crit.map(c=>`<li><span>${esc(trStr(c.label))}</span><span>${fmt1(c.from)} → ${fmt1(c.to)} ${deltaHTML(c.from,c.to)}</span></li>`).join('')}</ul>`:''}
+      <p class="small muted" style="margin:0">${p.n===1?L('Erste gegen letzte Übung.','First against latest session.'):L(`Ø der ersten ${p.n} gegen Ø der letzten ${p.n} Übungen.`,`Average of the first ${p.n} against the latest ${p.n} sessions.`)} ${L('Die Linie bei 4 ist Zusage-Niveau.','The line at 4 is offer level.')}</p>
+    </div>`).join('')}</div></section>`;
+}
+/* ---------------- tester feedback ----------------
+   A small card after a finished exercise: how helpful was it (1-5) and what was missing.
+   Asked after the 1st, 4th and 10th exercise only. Answers stay in the browser and, inside
+   Claude, go to the owner's anonymous usage view. */
+const Feedback={
+  at:[1,4,10],
+  maybeAsk(kind){
+    const n=Store.list.filter(r=>r.kind!=='math').length;
+    const f=settings.fb||{};
+    if(!this.at.includes(n)||(f.asked||[]).includes(n)||!$('#fbq'))return;
+    f.asked=[...(f.asked||[]),n];settings.fb=f;saveSettings();
+    this.kind=kind;this.n=n;this.r=0;this.render();
+  },
+  render(){
+    const el=$('#fbq');
+    el.innerHTML=`<div class="fbq-in" role="dialog" aria-labelledby="fbq-t"><div class="fbq-top"><b id="fbq-t">${L('Kurze Frage: Hat dir das geholfen?','Quick question: was this helpful?')}</b><button type="button" class="btn ghost small" data-fq="x" aria-label="${L('Schließen','Close')}">✕</button></div>
+      <div class="fbq-r" role="radiogroup" aria-label="${L('Hilfreich, 1 bis 5','Helpful, 1 to 5')}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="false" data-fq="${n}">${n}</button>`).join('')}<span>${L('1 = gar nicht · 5 = sehr','1 = not at all · 5 = very')}</span></div>
+      <textarea id="fbq-txt" rows="2" maxlength="500" placeholder="${L('Was hat gefehlt oder gestört? (optional)','What was missing or annoying? (optional)')}"></textarea>
+      <div class="fbq-bar"><span class="small muted">${L('Anonym, hilft beim Verbessern.','Anonymous, helps improve Callback.')}</span><button type="button" class="btn primary small" data-fq="send" disabled>${L('Senden','Send')}</button></div></div>`;
+    el.hidden=false;
+  },
+  send(){
+    const t=($('#fbq-txt').value||'').trim().slice(0,500);
+    const e={d:new Date().toISOString(),k:this.kind,n:this.n,r:this.r,t};
+    const f=settings.fb||{};f.answers=[...(f.answers||[]),e].slice(-10);settings.fb=f;saveSettings();
+    Track.feedback(e);
+    $('#fbq').innerHTML=`<div class="fbq-in"><b>${L('Danke!','Thank you!')}</b></div>`;
+    setTimeout(()=>this.hide(),1600);
+  },
+  hide(){const el=$('#fbq');if(el){el.hidden=true;el.innerHTML='';}}
+};
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-fq]');if(!b)return;
+  const a=b.dataset.fq;
+  if(a==='x')Feedback.hide();
+  else if(a==='send')Feedback.send();
+  else{Feedback.r=+a;$$('[data-fq]').forEach(x=>{if(/^\d$/.test(x.dataset.fq))x.setAttribute('aria-checked',String(x===b));});const s=$('[data-fq="send"]');if(s)s.disabled=false;}
+});
+/* ---------------- video interview training ----------------
+   Like one-way video interviews used by large employers: the question appears, a short
+   preparation countdown runs, then the answer is recorded against the clock, with no retake.
+   The recording never leaves the browser (blob URL, dropped on close). Speech recognition,
+   when the browser offers it, gives a transcript for pace, fillers and AI feedback.
+   Falls back to microphone only, then to typed answers, when camera access is not possible. */
+const Video={
+  st:null,
+  lang(){return isEn()?'en':'de';},
+  questions(){const set=VIDEO_SETS[settings.track]||VIDEO_SETS.allgemein;return (set[this.lang()]||set.de).slice(0,VIDEO_TIMING.count);},
+  open(){
+    this.close(true);
+    this.st={phase:'intro',answer:settings.videoAnswer||VIDEO_TIMING.answer,qs:this.questions(),i:0,items:[],mode:null,stream:null,rec:null,sr:null,t:null,last:document.activeElement};
+    $('#video-dlg').hidden=false;this.render();
+  },
+  close(silent){
+    const s=this.st;if(!s)return;
+    clearInterval(s.t);this.stopCapture();
+    if(s.stream)s.stream.getTracks().forEach(t=>t.stop());
+    (s.items||[]).forEach(it=>{if(it.url)URL.revokeObjectURL(it.url);});
+    this.st=null;
+    if(!silent){$('#video-dlg').hidden=true;$('#video-box').innerHTML='';if(s.last&&s.last.focus)try{s.last.focus({preventScroll:true});}catch(e){}}
+  },
+  head(eyebrow){return `<div class="pw-head"><div><div class="eyebrow">${eyebrow}</div><h2 class="h2" id="video-title">${L('Video-Interview','Video interview')}</h2></div><button type="button" class="btn ghost small" data-v="close" aria-label="${L('Schließen','Close')}">✕</button></div>`;},
+  render(){
+    const s=this.st,box=$('#video-box');if(!s||!box)return;
+    if(s.phase==='intro'){
+      box.innerHTML=this.head(L('Kamera an · gegen die Uhr','Camera on · against the clock'))+`
+        <p class="lede" style="margin:0">${L('So wie bei automatisierten Video-Interviews großer Unternehmen: Die Frage erscheint, du hast kurz Zeit zum Nachdenken, dann läuft die Aufnahme. Ein zweiter Versuch ist nicht vorgesehen.','Just like the automated video interviews many large employers use: the question appears, you get a moment to think, then the recording starts. There is no second take.')}</p>
+        <ol class="v-steps"><li><b>${s.qs.length} ${L('Fragen','questions')}</b> ${L('passend zu deinem Ziel','matching your goal')}</li><li><b>${VIDEO_TIMING.prep} ${L('Sek.','sec')}</b> ${L('Vorbereitung je Frage','preparation per question')}</li><li><b>${L('Antwortzeit','Answer time')}</b> <span class="chips v-time">${VIDEO_TIMING.answers.map(a=>`<button type="button" data-vt="${a}" aria-pressed="${a===s.answer}">${a} ${L('Sek.','sec')}</button>`).join('')}</span></li></ol>
+        <p class="small muted" style="margin:0">${L('Deine Aufnahmen bleiben in deinem Browser und werden nirgendwohin hochgeladen. Für Tempo und Füllwörter nutzt der Browser seine Spracherkennung, in Chrome läuft sie über Google.','Your recordings stay in your browser and are not uploaded anywhere. For pace and fillers the browser uses its speech recognition, which in Chrome runs through Google.')}</p>
+        <div class="actions"><button type="button" class="btn primary" data-v="start">${L('Kamera einschalten und starten','Turn on camera and start')}</button><button type="button" class="linkbtn" data-v="text">${L('Ohne Kamera, mit Text antworten','Answer in writing, without camera')}</button></div>`;
+      return;
+    }
+    if(s.phase==='q'){
+      const q=s.qs[s.i];
+      box.innerHTML=this.head(`${L('Frage','Question')} ${s.i+1} ${L('von','of')} ${s.qs.length}`)+`
+        <div class="v-stage">
+          <div class="v-cam">${s.mode==='text'?`<textarea id="v-text" rows="7" placeholder="${L('Schreib deine Antwort so, wie du sie sagen würdest.','Write your answer the way you would say it.')}" disabled></textarea>`:s.mode==='video'?'<video id="v-live" autoplay muted playsinline></video>':`<div class="v-audio">${MIC_SVG}<span>${L('Nur Mikrofon','Microphone only')}</span></div>`}
+            <div class="v-rec" id="v-rec" hidden><i></i>${L('Aufnahme','Recording')}</div></div>
+          <div class="v-side">
+            <p class="v-q">${esc(q)}</p>
+            <div class="v-clock"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="v-tr"></circle><circle cx="22" cy="22" r="19" class="v-ar" id="v-arc"></circle></svg><b id="v-left">0</b></div>
+            <div class="v-ph" id="v-ph"></div>
+            <p class="v-live-tx" id="v-tx" aria-live="polite"></p>
+            <div class="actions"><button type="button" class="btn primary" data-v="go" id="v-go">${L('Jetzt antworten','Answer now')}</button></div>
+          </div>
+        </div>`;
+      if(s.mode==='video'){const v=$('#v-live');v.srcObject=s.stream;}
+      this.prep();
+      return;
+    }
+    if(s.phase==='review'){this.renderReview();}
+  },
+  async start(textOnly){
+    const s=this.st;if(!s)return;
+    if(!textOnly&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+      try{s.stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:960},facingMode:'user'},audio:true});s.mode='video';}
+      catch(e){try{s.stream=await navigator.mediaDevices.getUserMedia({audio:true});s.mode='audio';}catch(e2){s.mode='text';s.note=L('Kamera und Mikrofon sind hier nicht freigegeben, daher antwortest du schriftlich. In Claude ist der Zugriff gesperrt; in der öffentlichen Demo im Browser funktioniert er.','Camera and microphone are not available here, so you answer in writing. Claude blocks access; it works in the public demo in your browser.');}}
+    }else s.mode='text';
+    if(!this.st)return;s.phase='q';s.i=0;this.render();
+  },
+  tick(sec,onEnd,label){
+    const s=this.st;clearInterval(s.t);const end=Date.now()+sec*1000,C=2*Math.PI*19;
+    const arc=$('#v-arc');if(arc){arc.style.strokeDasharray=C;}
+    $('#v-ph').textContent=label;
+    const step=()=>{if(!this.st)return;const left=Math.max(0,(end-Date.now())/1000);const el=$('#v-left');if(el)el.textContent=Math.ceil(left);if(arc)arc.style.strokeDashoffset=C*(1-left/sec);if(left<=0){clearInterval(s.t);onEnd();}};
+    step();s.t=setInterval(step,200);
+  },
+  prep(){
+    const s=this.st;s.sub='prep';
+    this.tick(VIDEO_TIMING.prep,()=>this.answer(),L('Vorbereitung','Preparation'));
+  },
+  answer(){
+    const s=this.st;if(!s||s.sub==='answer')return;s.sub='answer';s.t0=performance.now();s.fin='';
+    const go=$('#v-go');if(go){go.textContent=L('Fertig','Done');go.dataset.v='done';}
+    $('#v-rec').hidden=s.mode==='text';
+    const ta=$('#v-text');if(ta){ta.disabled=false;ta.focus();}
+    if(s.stream&&window.MediaRecorder){
+      try{s.chunks=[];s.rec=new MediaRecorder(s.stream);s.rec.ondataavailable=e=>{if(e.data&&e.data.size)s.chunks.push(e.data);};s.rec.start(500);}catch(e){s.rec=null;}
+    }
+    if(s.stream&&SR.Ctor){
+      try{const r=new SR.Ctor();r.lang=this.lang()==='en'?'en-GB':'de-DE';r.continuous=true;r.interimResults=true;
+        r.onresult=ev=>{let interim='';for(let i=ev.resultIndex;i<ev.results.length;i++){const x=ev.results[i];if(x.isFinal)s.fin+=x[0].transcript+' ';else interim+=x[0].transcript;}const t=$('#v-tx');if(t)t.textContent=(s.fin+interim).trim();};
+        r.onerror=()=>{};r.onend=()=>{if(this.st&&this.st.sr===r&&this.st.sub==='answer'){try{r.start();}catch(e){}}};
+        r.start();s.sr=r;}catch(e){s.sr=null;}
+    }
+    this.tick(s.answer,()=>this.done(),L('Antwort läuft','Answering'));
+  },
+  stopCapture(){
+    const s=this.st;if(!s)return Promise.resolve(null);
+    if(s.sr){const r=s.sr;s.sr=null;try{r.stop();}catch(e){}}
+    if(!s.rec||s.rec.state==='inactive')return Promise.resolve(null);
+    const rec=s.rec;s.rec=null;
+    return new Promise(res=>{rec.onstop=()=>res(new Blob(s.chunks,{type:rec.mimeType||'video/webm'}));try{rec.stop();}catch(e){res(null);}});
+  },
+  async done(){
+    const s=this.st;if(!s||s.sub!=='answer')return;s.sub='saving';clearInterval(s.t);
+    const sec=(performance.now()-s.t0)/1000;
+    const blob=await this.stopCapture();
+    if(!this.st)return;
+    const ta=$('#v-text');
+    const text=(s.mode==='text'?(ta?ta.value:''):s.fin).trim();
+    const item={q:s.qs[s.i],text,sec:Math.round(sec),url:blob&&blob.size?URL.createObjectURL(blob):null,av:s.mode};
+    if(s.mode!=='text'&&text)item.sp=speechStats(text,sec,this.lang());
+    s.items.push(item);
+    if(s.i+1<s.qs.length){s.i++;s.sub=null;this.render();}
+    else{if(s.stream)s.stream.getTracks().forEach(t=>t.stop());s.stream=null;s.phase='review';this.render();}
+  },
+  renderReview(){
+    const s=this.st,box=$('#video-box');
+    const sum=speechSummary(s.items.map(x=>x.sp));
+    const ai=AI.status==='ready';
+    box.innerHTML=this.head(L('Auswertung','Review'))+`
+      ${s.note?`<p class="small muted" style="margin:0">${esc(s.note)}</p>`:''}
+      <div class="v-list">${s.items.map((it,i)=>`<section class="v-item"><div class="eyebrow">${L('Frage','Question')} ${i+1} · ${fmtTime(it.sec)}</div><p class="v-q sm">${esc(it.q)}</p>
+        ${it.url?(it.av==='video'?`<video src="${it.url}" controls playsinline preload="metadata"></video>`:`<audio src="${it.url}" controls preload="metadata"></audio>`):''}
+        ${it.text?`<p class="v-ans">${esc(it.text)}</p>`:`<p class="small muted">${it.av==='text'?L('Keine Antwort geschrieben.','No answer written.'):L('Kein Transkript: Die Spracherkennung ist in diesem Browser nicht verfügbar. Sieh dir die Aufnahme an.','No transcript: speech recognition is not available in this browser. Watch the recording.')}</p>`}
+        ${it.sp?speechChipHTML(it.sp):''}</section>`).join('')}</div>
+      ${sum?speechHTML(sum):''}
+      <section class="v-rate" id="v-rate"><h3 class="h3">${ai?L('Bewertung','Rating'):L('Deine Selbsteinschätzung','Your self-assessment')}</h3>
+        ${ai?`<p class="small muted" style="margin:0 0 10px">${L('Die KI bewertet deine Antworten anhand des Transkripts. Wirkung vor der Kamera schätzt sie aus Sprache und Tempo, das Bild sieht sie nicht.','The AI rates your answers from the transcript. It judges on-camera impact from language and pace; it does not see the video.')}</p><div class="actions"><button type="button" class="btn primary" data-v="ai">${L('Feedback erstellen','Get feedback')}</button></div>`
+        :`<p class="small muted" style="margin:0 0 10px">${L('Sieh dir deine Aufnahmen an und bewerte dich ehrlich, von 1 (schwach) bis 5 (stark).','Watch your recordings and rate yourself honestly, from 1 (weak) to 5 (strong).')}</p>
+          <div class="v-self">${VIDEO_CRIT.map(([id,label])=>`<div class="v-sr"><span>${esc(trStr(label))}</span><span class="chips" role="radiogroup" aria-label="${esc(trStr(label))}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="false" data-vs="${id}:${n}">${n}</button>`).join('')}</span></div>`).join('')}</div>
+          <div class="actions"><button type="button" class="btn primary" data-v="save" disabled>${L('Speichern','Save')}</button></div>`}
+      </section>
+      <div class="actions"><button type="button" class="btn" data-v="again">${L('Noch einmal','Try again')}</button></div>`;
+  },
+  selfRate(id,n){
+    const s=this.st;s.self=s.self||{};s.self[id]=n;
+    $$('[data-vs^="'+id+':"]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.vs===id+':'+n)));
+    const b=$('[data-v="save"]');if(b)b.disabled=VIDEO_CRIT.some(([k])=>!s.self[k]);
+  },
+  record(fb){
+    const s=this.st;
+    return {id:uid(),kind:'video',date:new Date().toISOString(),appId:settings.activeApp||'',title:L('Video-Interview','Video interview')+(activeApp()&&activeApp().firm?' · '+activeApp().firm:''),
+      meta:{n:s.items.length,answer:s.answer,mode:s.items[0]&&s.items[0].av,self:!!fb.self},durationSec:s.items.reduce((a,x)=>a+x.sec,0),hints:0,endedEarly:false,
+      score:fb.gesamt,verdict:fb.urteil,feedback:fb,speech:speechSummary(s.items.map(x=>x.sp)),
+      transcript:s.items.flatMap(x=>[{who:'int',text:x.q},{who:'cand',text:x.text||'–'}])};
+  },
+  async saveSelf(){
+    const s=this.st;if(!s||!s.self)return;
+    const kr=VIDEO_CRIT.map(([id,label])=>({id,label,punkte:s.self[id],kommentar:''}));
+    const g=Math.round(kr.reduce((a,k)=>a+k.punkte,0)/kr.length*10)/10;
+    const fb={gesamt:g,urteil:g>=4?'weiter':g>=3?'knapp':'nein',kriterien:kr,staerken:[],verbesserungen:[],zusammenfassung:L('Selbsteinschätzung nach dem Ansehen der Aufnahmen.','Self-assessment after watching the recordings.'),self:true};
+    await this.finish(fb);
+  },
+  async aiRate(){
+    const s=this.st;if(!s)return;
+    const box=$('#v-rate');box.innerHTML=`<p class="muted">${L('Dein Feedback wird erstellt …','Your feedback is being prepared …')}</p>`;
+    const crit=VIDEO_CRIT.map(([id,l])=>`"${id}" (${l})`).join(', ');
+    const prompt=`Du bewertest ein Übungs-Video-Interview (einseitiges, aufgezeichnetes Interview ohne Gegenüber) für ${activeApp()&&activeApp().position?activeApp().position:'eine Einstiegsposition'}${activeApp()&&activeApp().firm?' bei '+activeApp().firm:''}. Antwortzeit je Frage: ${s.answer} Sekunden. Du siehst nur das Transkript der Spracherkennung (kann Erkennungsfehler enthalten) und Messwerte zu Tempo und Füllwörtern, nicht das Bild.
+
+${s.items.map((x,i)=>`FRAGE ${i+1}: ${x.q}\nDAUER: ${x.sec} s${x.sp&&x.sp.wpm?`, ${x.sp.wpm} Wörter/Min., ${x.sp.fillN} Füllwörter`:''}\nANTWORT: ${x.text||'(keine Antwort erkannt)'}`).join('\n\n')}
+
+Bewerte die Kriterien ${crit} jeweils von 1 bis 5 (4 = würde in die nächste Runde kommen) mit einem Satz Begründung. Sei ehrlich und konkret, zitiere wenn möglich aus den Antworten.
+Antworte nur mit JSON: {"gesamt": Zahl, "urteil": "weiter"|"knapp"|"nein", "zusammenfassung": "2 Sätze", "kriterien": [{"id": "...", "punkte": 1-5, "kommentar": "..."}], "staerken": ["...", "..."], "verbesserungen": [{"punkt": "...", "statt": "Zitat aus einer Antwort", "besser": "stärkere Formulierung"}]}`;
+    try{
+      const raw=await aiJson(prompt,{modelTier:'default',cache:false});
+      const kr=VIDEO_CRIT.map(([id,label])=>{const k=(raw.kriterien||[]).find(x=>x&&x.id===id)||{};const p=Math.round(+k.punkte);return {id,label,punkte:p>=1&&p<=5?p:null,kommentar:String(k.kommentar||'')};});
+      const valid=kr.filter(k=>k.punkte!=null);
+      const g=+raw.gesamt>0?Math.round(+raw.gesamt*10)/10:valid.length?Math.round(valid.reduce((a,k)=>a+k.punkte,0)/valid.length*10)/10:null;
+      const fb={gesamt:g,urteil:['weiter','knapp','nein'].includes(raw.urteil)?raw.urteil:'knapp',kriterien:kr,zusammenfassung:String(raw.zusammenfassung||''),
+        staerken:(raw.staerken||[]).map(String).slice(0,4),verbesserungen:(raw.verbesserungen||[]).filter(x=>x&&x.punkt).map(x=>({punkt:String(x.punkt),statt:String(x.statt||''),besser:String(x.besser||'')})).slice(0,4)};
+      await this.finish(fb);
+    }catch(e){box.innerHTML=`<p class="note-err">${esc(errText(e))}</p><div class="actions"><button type="button" class="btn" data-v="ai">${L('Erneut versuchen','Try again')}</button></div>`;}
+  },
+  async finish(fb){
+    const s=this.st;if(!s)return;
+    const rec=this.record(fb);
+    await Store.save(rec);
+    Track.log('video',fb.gesamt,{m:Math.round(rec.durationSec/60),self:fb.self?1:0});
+    const box=$('#v-rate');if(box)box.outerHTML=`<div class="v-card">${scorecardHTML(rec)}</div>`;
+    renderHome();
+    Feedback.maybeAsk('video');
+  }
+};
+document.addEventListener('click',e=>{
+  const v=e.target.closest('[data-v]');
+  if(v&&Video.st){
+    const a=v.dataset.v;
+    if(a==='close')Video.close();
+    else if(a==='start'||a==='text')Video.start(a==='text');
+    else if(a==='go')Video.answer();
+    else if(a==='done')Video.done();
+    else if(a==='save')Video.saveSelf();
+    else if(a==='ai')Video.aiRate();
+    else if(a==='again')Video.open();
+    return;
+  }
+  const t=e.target.closest('[data-vt]');if(t&&Video.st){Video.st.answer=+t.dataset.vt;settings.videoAnswer=Video.st.answer;saveSettings();$$('[data-vt]').forEach(b=>b.setAttribute('aria-pressed',String(b===t)));return;}
+  const r=e.target.closest('[data-vs]');if(r&&Video.st){const [id,n]=r.dataset.vs.split(':');Video.selfRate(id,+n);return;}
+  if(e.target.id==='video-dlg'&&Video.st&&Video.st.phase!=='q')Video.close();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&Video.st)Video.close();});
 /* ---------------- demo mode: replay a recorded interview ----------------
    The public demo has no AI, so this shows what a session looks like: the transcript plays
    turn by turn, then the scorecard appears. Content lives in content/examples.js. */
@@ -3951,6 +4368,7 @@ const Demo={
     box.innerHTML=`<section class="demo-card demo-in"><div class="eyebrow">${L('Bewertungsbogen','Scorecard')}</div>
       <div class="demo-total"><b>${fmt1(sc.gesamt)}</b><small>/ 5</small><span class="pill ${v.cls}">${esc(trStr(v.txt))}</span></div>
       <ul class="demo-crit">${FIT_CRIT.map(([id,label])=>`<li><span>${esc(trStr(label))}</span>${bar5(sc.kriterien[id])}</li>`).join('')}</ul>
+      ${sc.speech?speechHTML(sc.speech):''}
       <div class="demo-cols"><div><h3 class="h4">${L('Stark','Strong')}</h3><ul>${sc.gut.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
       <div><h3 class="h4">${L('Nächstes Mal','Next time')}</h3><ul>${sc.besser.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
       <p class="small muted" style="margin:0">${L('Danach schlägt Callback die passende Kurzübung vor, hier „'+DRILLS.star.label+'“, weil Konkretheit & Ergebnisse am schwächsten war.','Callback then suggests the matching short drill, here “'+trStr(DRILLS.star.label)+'”, because specificity & results scored lowest.')}</p></section>`;
@@ -3991,8 +4409,9 @@ function renderFootNote(){
     P(L('Prototyp.','Prototype.'),'Callback ist ein privates Projekt und kostenlos. Die Bewertungen sind Übungsfeedback, keine Vorhersage echter Ergebnisse.','Callback is a personal project and free to use. Ratings are practice feedback, not a prediction of real results.'),
     P(L('Deine Daten bleiben bei dir.','Your data stays with you.'),'Lebenslauf, Antworten, Bewerbungen und Verlauf werden nur in deinem Browser gespeichert. Es gibt kein Konto und keinen eigenen Server. Zum Löschen entfernst du die Website-Daten dieser Seite in deinem Browser.','Your CV, answers, applications and history are stored only in your browser. There is no account and no server of our own. To delete them, clear this site’s data in your browser.'),
     P(L('KI-Funktionen.','AI features.'),'Interviews, Feedback und Unterlagen-Check laufen nur, wenn du Callback in Claude öffnest. Dann gehen deine Eingaben zur Auswertung an Claude (Anthropic) und werden über deinen eigenen Claude-Zugang verarbeitet; es gelten die Datenschutzbestimmungen von Anthropic. E-Mail-Adressen, Telefonnummern und Links aus dem Lebenslauf werden vor dem Senden entfernt, Adresse und Geburtsdatum lässt die KI im Profil weg. In der öffentlichen Demo wird nichts an eine KI gesendet.','Interviews, feedback and the document check only run when you open Callback in Claude. Your input is then sent to Claude (Anthropic) for evaluation and processed through your own Claude access; Anthropic’s privacy policy applies. Email addresses, phone numbers and links are removed from your CV before sending, and the AI leaves out address and date of birth from your profile. The public demo sends nothing to any AI.'),
+    P(L('Kamera und Mikrofon.','Camera and microphone.'),'Video-Aufnahmen bleiben in deinem Browser und werden nicht hochgeladen; beim Schließen sind sie weg. Für Transkript, Tempo und Füllwörter nutzt Callback die Spracherkennung deines Browsers. In Chrome schickt der Browser das Audio dafür an Google, in anderen Browsern kann es lokal laufen. Wer das nicht möchte, antwortet schriftlich.','Video recordings stay in your browser and are not uploaded; they are gone when you close the dialog. For transcript, pace and fillers Callback uses your browser’s speech recognition. In Chrome the browser sends the audio to Google for this; other browsers may run it locally. If you prefer not to, answer in writing.'),
     P(L('Nutzungsstatistik.','Usage statistics.'),'Nur in der Claude-Version zählt Callback ohne Namen, an welchen Tagen welche Übungsarten genutzt werden und welche Punktzahlen herauskommen. Das dient dazu, den Prototyp zu verbessern. Antworten, Transkripte und Unterlagen werden dabei nicht erfasst. Die öffentliche Demo erfasst keine Nutzung.','Only in the Claude version does Callback count, without names, on which days which exercise types are used and which scores result. This helps improve the prototype. Answers, transcripts and documents are not recorded. The public demo records no usage.'),
-    P(L('Hosting.','Hosting.'),'Die öffentliche Demo liegt auf GitHub Pages. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse. Schriften werden von derselben Seite geladen, es gibt keine Inhalte von Drittanbietern.','The public demo is hosted on GitHub Pages. GitHub processes technically necessary access data such as your IP address. Fonts are served from the same site; there is no third-party content.'),
+    P(L('Hosting.','Hosting.'),'Die öffentliche Demo liegt auf GitHub Pages. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse. Schriften werden von derselben Seite geladen, die Seite selbst lädt keine Inhalte von Drittanbietern.','The public demo is hosted on GitHub Pages. GitHub processes technically necessary access data such as your IP address. Fonts are served from the same site; the page itself loads no third-party content.'),
     `<p>${L('Kontakt und Code','Contact and code')}: <a href="https://github.com/claussec/callback-interview-coach" target="_blank" rel="noopener">github.com/claussec/callback-interview-coach</a></p>`
   ].join('');
 }
@@ -4086,6 +4505,7 @@ const Orb={raf:0,t0:0,px:0,py:0,tx:0,ty:0,boost:0,cv:null,cols:null,
   }
 };
 function runStep(act){
+  if(act==='video'){Video.open();return;}
   if(String(act).startsWith('start:')){
     const [,k,x,y]=String(act).split(':');
     if(k==='fit'){if(x&&FIT_ARTS[x]){settings.fitArt=x;saveSettings();renderFitArt();renderTypical();}setTab('fit');if(!ACTIVE.fit)showStage('fit','setup');window.scrollTo({top:0});startFit();return;}
@@ -4114,7 +4534,7 @@ function updateBackbar(){
 function renderLibrary(){
   const el=$('#lib-groups');if(!el)return;
   const row=(t,d,min,act,extra)=>`<button type="button" class="lib-row" data-step="${esc(act)}"><span class="lib-t">${esc(t)}</span><span class="lib-d">${esc(d)}</span><span class="lib-m">${min?min+' '+L('Min.','min'):''}${extra?' · '+esc(extra):''}</span></button>`;
-  const fitRows=Object.entries(FIT_ARTS).map(([id,A])=>row(trStr(A.label),trStr(A.short),id==='telefon'?10:id==='gehalt'?15:20,'fit:'+id)).join('');
+  const fitRows=Object.entries(FIT_ARTS).map(([id,A])=>row(trStr(A.label),trStr(A.short),id==='telefon'?10:id==='gehalt'?15:20,'fit:'+id)).join('')+row(L('Video-Interview','Video interview'),L('Kamera an, Antwort gegen die Uhr, wie bei automatisierten Video-Interviews.','Camera on, answer against the clock, like automated video interviews.'),6,'video');
   const acRows=Object.entries(AC_TYPES).map(([id,t])=>row(trStr(t.label),trStr(t.desc),t.min,'ac:'+id)).join('');
   const a=activeApp();
   const groups=[
@@ -4124,7 +4544,7 @@ function renderLibrary(){
     {h:L('Für Einstellungstests','For aptitude tests'),rows:row(L('Zahlenreihen & Kopfrechnen','Number series & mental maths'),L('Ohne KI, unbegrenzt.','No AI, unlimited.'),3,'math')},
     {h:L('Für Beratung','For consulting'),rows:row(L('Case-Interview','Case interview'),L('Kompletter Case mit Exhibits und Lernmodus.','Full case with exhibits and learning mode.'),30,'case:kandidat:mittel')}
   ];
-  if(Track.owner)groups.push({h:L('Nur für dich','Only for you'),rows:row(L('Nutzung & Nachfrage','Usage & demand'),L('Anonyme Statistik deiner Testnutzer.','Anonymous statistics of your test users.'),0,'go:admin')});
+  if(Track.owner)groups.push({h:L('Nur für dich','Only for you'),rows:row(L('Nutzung','Usage'),L('Anonyme Statistik deiner Testnutzer.','Anonymous statistics of your test users.'),0,'go:admin')});
   el.innerHTML=groups.map(g=>`<section class="lib-g"><h2 class="lib-h">${esc(g.h)}</h2><div class="lib-list">${g.rows}</div></section>`).join('');
 }
 
@@ -4305,10 +4725,10 @@ function micStart(kind){
   let rec;try{rec=new SR.Ctor();}catch(e){SR.blocked=true;showDictGuide(kind);return;}
   rec.lang=s.cfg.lang==='en'?'en-GB':'de-DE';rec.continuous=true;rec.interimResults=true;
   const base=R.input.value.trim()?R.input.value.replace(/\s*$/,' '):'';
-  let fin='';
+  let fin='';const t0=performance.now();
   rec.onresult=ev=>{let interim='';for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)fin+=r[0].transcript;else interim+=r[0].transcript;}R.input.value=base+fin+interim;};
   rec.onerror=ev=>{const er=ev&&ev.error;if(er&&er!=='no-speech'&&er!=='aborted'){SR.blocked=true;showDictGuide(kind);}};
-  rec.onend=()=>{if(SR.rec===rec){SR.rec=null;SR.kind=null;}setMicState(kind,false);};
+  rec.onend=()=>{if(SR.rec===rec){SR.rec=null;SR.kind=null;}setMicState(kind,false);const sec=(performance.now()-t0)/1000;if(fin.trim()&&sec>2){R.speech=R.speech||{sec:0};R.speech.sec+=sec;}};
   try{rec.start();SR.rec=rec;SR.kind=kind;setMicState(kind,true);hideDictGuide(kind);}catch(e){SR.rec=null;SR.blocked=true;showDictGuide(kind);}
 }
 const MIC_SVG='<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"></rect><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>';
@@ -4379,7 +4799,7 @@ function runHTML(kind,s){
 function entryHTML(e,i){
   if(e.hidden)return '';
   if(e.k==='int')return turnHTML('int',stripMarkers(e.raw),parseMarkers(e.raw).tipp,i,curIntLabel);
-  return turnHTML(e.k==='hint'?'hint':'cand',e.text);
+  return turnHTML(e.k==='hint'?'hint':'cand',e.text).replace(/<\/li>$/,e.sp?`${speechChipHTML(e.sp)}</li>`:'</li>');
 }
 function coachNoteHTML(t){return `<div class="coachnote"><span class="eyebrow">Coach-Tipp</span><div>${esc(t)}</div></div>`;}
 function turnHTML(who,text,tip,i,label){
@@ -4488,6 +4908,7 @@ function send(kind){
   stopSpeech();TTS.unlock();micStop();hideDictGuide(kind);
   const min=Math.floor(s.elapsed/60);
   const e={k:'cand',text,sent:`[Zeit: ${min} Min.] ${text}`,t:s.elapsed};
+  if(R.speech&&R.speech.sec>2)e.sp=speechStats(text,R.speech.sec,s.cfg.lang==='en'?'en':'de');R.speech=null;
   s.log.push(e);R.input.value='';persistActive(true);
   R.log.insertAdjacentHTML('beforeend',entryHTML(e));
   toBottom(true);
@@ -4579,7 +5000,7 @@ function sessionToRecord(s,fb){
     id:s.id,kind:s.kind,date:new Date().toISOString(),appId:settings.activeApp||'',
     title:s.kind==='case'?s.book.titel:s.kind==='ac'?s.cfg.typeLabel+' · '+s.cfg.firm:(s.cfg.artLabel||'Interview')+' · '+s.cfg.firm,
     meta:s.kind==='case'?{type:s.cfg.typeLabel,industry:s.cfg.industry,level:s.cfg.level,lang:s.cfg.lang,style:s.cfg.style,oral:!!s.cfg.oral}:s.kind==='ac'?{type:s.cfg.type,firm:s.cfg.firm,oral:!!s.cfg.oral}:{art:s.cfg.art,n:s.cfg.n,lang:s.cfg.lang,firm:s.cfg.firm,oral:!!s.cfg.oral,ad:!!s.cfg.jobAd},
-    durationSec:s.elapsed||0,hints:s.hints||0,endedEarly:!s.ended,
+    durationSec:s.elapsed||0,hints:s.hints||0,endedEarly:!s.ended,speech:speechSummary(s.log.filter(e=>e.sp).map(e=>e.sp)),
     score:fb.gesamt,verdict:fb.urteil,feedback:fb,
     transcript:logToTranscript(s.log),book:s.kind==='case'?s.book:null,notes:s.notes||'',followups:[],
     phaseTimes:s.kind==='case'?phaseTimes(s.log,s.elapsed):null
@@ -4617,6 +5038,7 @@ function metaLine(rec){
   if(rec.kind==='case'&&rec.meta)return [rec.meta.type,rec.meta.style==='coach'?'Lernmodus':'',rec.meta.industry,(LEVELS[rec.meta.level]||{}).label,LANGS[rec.meta.lang],rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
   if(rec.kind==='fit'&&rec.meta)return [(FIT_ARTS[rec.meta.art]||{}).label,`${rec.meta.n} ${rec.meta.art==='gehalt'?'Runden':'Hauptfragen'}`,LANGS[rec.meta.lang],rec.meta.ad?'mit Stellenanzeige':'',rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
   if(rec.kind==='ac'&&rec.meta)return ['Assessment Center',(AC_TYPES[rec.meta.type]||{}).label,rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
+  if(rec.kind==='video'&&rec.meta)return [L('Video-Interview','Video interview'),`${rec.meta.n} ${L('Fragen','questions')}`,`${rec.meta.answer} ${L('Sek. je Antwort','sec per answer')}`,rec.meta.mode==='text'?L('schriftlich','written'):rec.meta.mode==='audio'?L('nur Ton','audio only'):L('mit Kamera','with camera'),rec.meta.self?L('Selbsteinschätzung','self-assessment'):''].filter(Boolean).join(' · ');
   if(rec.kind==='docs'&&rec.meta)return ['Unterlagen-Check',rec.meta.firm,rec.meta.ad?'mit Stellenanzeige':'ohne Stellenanzeige',rec.meta.cover?'mit Anschreiben':'ohne Anschreiben'].filter(Boolean).join(' · ');
   return '';
 }
@@ -4624,7 +5046,7 @@ const dateFmt=new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',yea
 const dateShort=new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});
 function scorecardHTML(rec){
   const fb=rec.feedback;const v=VERDICT[fb.urteil]||VERDICT.knapp;
-  const facts=rec.kind==='docs'?dateFmt.format(new Date(rec.date)):[dateFmt.format(new Date(rec.date)),'Dauer '+fmtTime(rec.durationSec),rec.hints?(rec.hints===1?'1 Hinweis':rec.hints+' Hinweise'):'ohne Hinweise',rec.endedEarly?'vorzeitig beendet':''].filter(Boolean).join(' · ');
+  const facts=rec.kind==='docs'?dateFmt.format(new Date(rec.date)):[dateFmt.format(new Date(rec.date)),'Dauer '+fmtTime(rec.durationSec),rec.kind==='video'?'':rec.hints?(rec.hints===1?'1 Hinweis':rec.hints+' Hinweise'):'ohne Hinweise',rec.endedEarly?'vorzeitig beendet':''].filter(Boolean).join(' · ');
   const vt=rec.kind==='docs'?{weiter:{cls:'good',txt:'Einladungsreif'},knapp:{cls:'warn',txt:'Grenzfall'},nein:{cls:'bad',txt:'Noch nicht einladungsreif'}}[fb.urteil]:null;
   const ml=fb.musterloesung;const leit=rec.book&&rec.book.leitfrage;
   return `<div class="scorecard">
@@ -4640,6 +5062,7 @@ function scorecardHTML(rec){
     ${rec.kind==='docs'?docsExtraHTML(fb):''}
     ${fb.antworten&&fb.antworten.length?`<section><h3 class="h3">${rec.kind==='ac'?'Phase für Phase':'Antwort für Antwort'}</h3><ol class="answers">${fb.antworten.map(a=>{const r=ANSWER_RATING[a.bewertung]||ANSWER_RATING.solide;return `<li><div class="ah"><span class="pill ${r.cls}">${r.txt}</span><b>${esc(a.frage)}</b></div>${a.kommentar?`<p>${esc(a.kommentar)}</p>`:''}${a.tipp?`<p class="tip"><b>Tipp:</b> ${esc(a.tipp)}</p>`:''}${a.geschichte?`<p class="tip"><b>Geschichte:</b> ${esc(a.geschichte)}</p>`:''}</li>`;}).join('')}</ol></section>`:''}
     ${rec.phaseTimes?phaseTimesHTML(rec.phaseTimes,rec.meta&&rec.meta.level):''}
+    ${speechHTML(rec.speech)}
     <div class="two">
       <section><h3 class="h3">Das lief gut</h3>${fb.staerken.length?`<ul class="plus">${fb.staerken.map(x=>`<li><span>${esc(x)}</span></li>`).join('')}</ul>`:'<p class="muted">Keine Angaben.</p>'}</section>
       <section><h3 class="h3">Daran arbeiten</h3>${fb.verbesserungen.length?`<div class="improve">${fb.verbesserungen.map(x=>`<div class="it"><b>${esc(x.punkt)}</b>${x.statt?`<div class="q"><i>Statt</i>${esc(x.statt)}</div>`:''}${x.besser?`<div class="q better"><i>Besser</i>${esc(x.besser)}</div>`:''}</div>`).join('')}</div>`:'<p class="muted">Keine Angaben.</p>'}</section>
@@ -4681,6 +5104,7 @@ function transcriptDetails(rec){
 }
 function qaHTML(f){return `<div class="qa-item"><div class="qa-q">${esc(f.q)}</div><div class="qa-a md">${md(f.a)}</div></div>`;}
 function showResult(kind,rec){
+  if(Date.now()-new Date(rec.date).getTime()<120000)setTimeout(()=>Feedback.maybeAsk(kind),1200);
   const box=$('#'+kind+'-result');
   box.innerHTML=`<div class="result-wrap">
     ${scorecardHTML(rec)}
@@ -4882,7 +5306,7 @@ function renderHistory(){
     else{const v=r.kind==='docs'?({weiter:{cls:'good',txt:'Einladungsreif'},knapp:{cls:'warn',txt:'Grenzfall'},nein:{cls:'bad',txt:'Noch nicht reif'}}[r.verdict]||VERDICT.knapp):VERDICT[r.verdict]||VERDICT.knapp;score=fmt1(r.score);pill=`<span class="pill ${v.cls}">${v.txt}</span>`;sub=metaLine(r);}
     return `<li class="hitem" data-id="${esc(r.id)}"><button type="button" class="hrow" aria-expanded="false" aria-controls="hd-${esc(r.id)}"><span class="hdate">${dateShort.format(new Date(r.date))}</span><span class="htag">${tag}</span><span class="htitle">${esc(r.title)}<small>${esc(sub)}</small></span><span class="hscore">${score}</span>${pill}</button><div class="hdetail" id="hd-${esc(r.id)}" hidden></div></li>`;
   }).join('');
-  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:30px">${tiles}${analysis}<section><h2 class="h3">Alle Übungen</h2><ul class="hlist">${rows}</ul></section></div>`;
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:30px">${tiles}${progressHTML(Store.list)}${analysis}<section><h2 class="h3">Alle Übungen</h2><ul class="hlist">${rows}</ul></section></div>`;
   $$('.hrow',body).forEach(b=>b.addEventListener('click',()=>toggleHist(b)));
 }
 function toggleHist(btn){
@@ -5485,6 +5909,7 @@ async function submitDrill(){
     showDrillResult(true);
     await Store.save({id:D.id,kind:'drill',appId:settings.activeApp||'',date:new Date().toISOString(),title:D.task.titel,drill:D.type,level:D.cfg.level,score:fb.punkte,revealed:!!D.revealed,feedback:fb,task:D.task,answer:D.answer});
     Track.log('drill',fb.punkte,{t:D.type,l:D.cfg.level});
+    Feedback.maybeAsk('drill');
     renderPlan();
   }catch(e){
     if(DRILL===D){if(e&&e.code==='cancelled')st.textContent='';else{st.className='status err';st.textContent=errText(e);}}

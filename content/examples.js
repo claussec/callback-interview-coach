@@ -27,7 +27,7 @@ const EXAMPLE_CASE_EN=[
 
 /* Recorded example interview for demo mode: a classic interview for a finance trainee role
    at a fictional company. turns: {who:'int'|'cand', text, note?}; score mirrors a real
-   scorecard (FIT_CRIT ids, 1 to 5). */
+   scorecard (FIT_CRIT ids, 1 to 5) and speech is the analysis of the spoken answers. */
 const EXAMPLE_INTERVIEW={
   de:{
     title:'Vorstellungsgespräch · Trainee Finance bei der Nordwerk AG',
@@ -45,6 +45,7 @@ const EXAMPLE_INTERVIEW={
     ],
     score:{gesamt:3.8,verdict:'weiter',
       kriterien:{struktur:4,substanz:3,motivation:4,wirkung:4},
+      speech:{answers:5,words:236,sec:104,wpm:136,fill:{'äh':4,'also':2,'halt':1},fillN:7,per100:3},
       gut:['Klarer Einstieg, der direkt zur Stelle führt.','Fehler-Frage souverän: Verantwortung übernommen und konkrete Konsequenz genannt.'],
       besser:['Ergebnisse sofort mit Zahlen belegen, nicht erst auf Nachfrage.','Bei „Was war Ihr Beitrag?“ mit dem eigenen Anteil beginnen, nicht mit dem Werkzeug.']}
   },
@@ -64,6 +65,7 @@ const EXAMPLE_INTERVIEW={
     ],
     score:{gesamt:3.8,verdict:'weiter',
       kriterien:{struktur:4,substanz:3,motivation:4,wirkung:4},
+      speech:{answers:5,words:228,sec:101,wpm:135,fill:{'um':4,'like':2,'basically':1},fillN:7,per100:3.1},
       gut:['Clear opening that leads straight to the role.','Handled the mistake question well: took responsibility and named a concrete change.'],
       besser:['Back up results with numbers right away, not only when asked.','When asked about your contribution, start with your own part, not the tool.']}
   }

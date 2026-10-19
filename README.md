@@ -23,14 +23,21 @@ There is no shortage of application advice. What is missing is a place where you
 - **Assessment centre:** Group discussion, role plays, presentation and in-tray exercise, scored like real assessors would.
 - **Case interviews** for consulting and strategy roles.
 - **Document check:** Your CV against the job ad, which also produces the questions you are most likely to get.
+- **Video interview training:** Camera on, 30 seconds to think, then the answer is recorded against the clock, like the one-way video interviews many large employers use. Watch yourself back; recordings never leave the browser.
+- **Speech analysis:** For spoken answers, pace in words per minute and filler words ("um", "like", "äh", "halt" …), per answer and per session.
 - **Short drills and tests:** Self-introduction, questions for the interviewer, mental maths and number series.
 - **Cheat sheet** for the day of the interview.
-- **Progress:** six milestones on the ring around the animated orb.
+- **Progress:** six milestones on the ring around the animated orb, and a chart per practice type showing how each criterion changed from the first to the latest sessions.
+- **Tester feedback:** a short "was this helpful?" after the 1st, 4th and 10th exercise, collected anonymously for the owner.
 - German and English, light and dark mode, mobile and desktop.
 
 **Demo replay** – the public demo has no AI, so it plays back a recorded interview and its scorecard:
 
 ![Example interview with scorecard](screenshots/demo-replay.jpg)
+
+| Video interview | Progress per criterion |
+|---|---|
+| ![Video interview](screenshots/video.jpg) | ![Progress](screenshots/progress.jpg) |
 
 | Dark mode | Mobile | Onboarding |
 |---|---|---|
@@ -38,7 +45,7 @@ There is no shortage of application advice. What is missing is a place where you
 
 ## How it works
 
-- **No build step, no framework:** `index.html` plus five content files. Runs from disk, on GitHub Pages and as a Claude artifact unchanged.
+- **No build step, no framework:** `index.html` plus six content files. Runs from disk, on GitHub Pages and as a Claude artifact unchanged.
 - **Data over code:** interview types, assessment centre exercises, scoring rubrics, drills and fields of work live in [`content/`](content). Adding an interview type is one entry, not a code change.
 - **Guidance engine:** the home screen asks one function, `nextStep()`, what matters most right now, based on progress, weakest criterion and days until the interview.
 - **One AI seam:** every model call goes through `aiCall()` / `aiJson()`. The AI features use the Claude Artifacts runtime and **do not run in the GitHub demo**, which shows a recorded session instead. Swapping in your own backend means changing those two functions.
@@ -53,6 +60,7 @@ content/
   drills.js           short drills
   areas.js            fields of work and detection keywords
   examples.js         recorded example sessions (demo mode)
+  speech.js           filler words, pace limits, video interview questions
   i18n-en.js          German → English dictionary
 tests/                content checks (Node) and browser tests (Playwright)
 fonts/                self-hosted fonts, no third-party requests
@@ -60,7 +68,7 @@ fonts/                self-hosted fonts, no third-party requests
 
 ## Privacy
 
-- **Public demo (GitHub Pages):** no AI calls, no tracking, nothing leaves the browser apart from loading the page itself from GitHub.
+- **Public demo (GitHub Pages):** no AI calls, no tracking. Video recordings stay in the browser. Speech recognition is the browser's own; in Chrome it sends audio to Google, so written answers are always offered.
 - **Claude version:** AI features send the user's input to Claude (Anthropic) through the user's own Claude access. A pseudonymous usage count (days, exercise types, scores; no answers or documents) helps improve the prototype.
 
 ## Business model (concept)

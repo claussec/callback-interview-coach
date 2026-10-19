@@ -77,3 +77,25 @@ test('English dictionary has a translation for every entry',()=>{
   assert.ok(entries.length>500);
   for(const [de,en] of entries)assert.ok(typeof en==='string'&&en.trim(),`no translation for "${de.slice(0,60)}"`);
 });
+
+test('no two scripts define the same top-level name',()=>{
+  // Classic scripts share one global scope: a second `function x` silently replaces the first.
+  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+  const all=[html,...files.map(f=>readFileSync(new URL(`../content/${f}.js`,import.meta.url),'utf8')),readFileSync(new URL('../content/speech.js',import.meta.url),'utf8')].join('\n');
+  const names=[...all.matchAll(/^(?:async )?function (\w+)\(|^(?:const|let) (\w+)\s*=/gm)].map(m=>m[1]||m[2]);
+  unique(names,'top-level name');
+});
+
+test('speech and video content is consistent',()=>{
+  const S=vm.runInNewContext(readFileSync(new URL('../content/speech.js',import.meta.url),'utf8')+';({FILLERS,PACE,VIDEO_SETS,VIDEO_TIMING,VIDEO_CRIT})');
+  for(const lang of ['de','en'])for(const f of S.FILLERS[lang])assert.equal(f,f.toLowerCase());
+  assert.ok(S.PACE.lo<S.PACE.hi);
+  assert.ok(S.VIDEO_SETS.allgemein,'a fallback question set is required');
+  for(const [id,set] of Object.entries(S.VIDEO_SETS)){
+    assert.ok(id==='allgemein'||C.TRACKS[id],`video set for unknown goal ${id}`);
+    assert.equal(set.de.length,set.en.length,`${id}: German and English sets differ`);
+    assert.ok(set.de.length>=S.VIDEO_TIMING.count,`${id}: not enough questions`);
+  }
+  assert.ok(S.VIDEO_TIMING.answers.includes(S.VIDEO_TIMING.answer));
+  unique(ids(S.VIDEO_CRIT),'video criterion');
+});

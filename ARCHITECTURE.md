@@ -1,6 +1,6 @@
 # Architecture
 
-Callback is a static web app: one HTML page, five content files, no framework and no build step. Everything runs in the browser. The only external dependency is the AI model, and it sits behind a single function.
+Callback is a static web app: one HTML page, six content files, no framework and no build step. Everything runs in the browser. The only external dependency is the AI model, and it sits behind a single function.
 
 ## Overview
 
@@ -11,6 +11,7 @@ flowchart LR
     DR["drills.js<br/>short drills"]
     AR["areas.js<br/>fields of work + keywords"]
     EX["examples.js<br/>recorded sessions"]
+    SP["speech.js<br/>fillers, pace, video questions"]
     EN["i18n-en.js<br/>DE → EN dictionary"]
   end
 
@@ -42,10 +43,14 @@ flowchart LR
 | **Field detection** | `detectArea()`, `aiArea()` | Scores the role title (strongest signal), job ad and company against the keywords in `areas.js`. The field steers question choice, case industry and which drills are suggested. Falls back to a quick AI guess, and the user can override it. |
 | **Prompt builders** | `fitRules()`, `acRules()`, `buildCaseCfg()`, `docsPrompt()`, `drillGenPrompt()` | Combine content, the user's CV, the job ad and the field into instructions for the model. |
 | **Sessions** | `startFit()`, `startAc()`, `startCase()`, `startDocs()`, `startDrill()` | Run a conversation turn by turn, then request a structured scorecard (JSON) and render it. A weak criterion maps to a drill via `CRIT_DRILL`, which closes the loop back to the guidance engine. |
+| **Video interview** | `Video` | Camera and microphone via `getUserMedia`, timed prep and answer, local recording with `MediaRecorder` (blob URLs, never uploaded), transcript from the browser's speech recognition. Rated by the AI from the transcript, or by the user after watching. Falls back to audio only, then to written answers. |
+| **Speech analysis** | `speechStats()`, `speechSummary()` | Words per minute and filler words for answers given by microphone, per answer and per session. Word lists and pace limits in `speech.js`. |
+| **Progress** | `progressData()` | Scores per session in order and each criterion's change from the first to the latest sessions, per practice type. |
+| **Tester feedback** | `Feedback` | Asks "was this helpful?" after the 1st, 4th and 10th exercise; answers go to the owner's usage view. |
 | **AI adapter** | `aiCall()`, `aiJson()` | The only place that talks to a model. Adds the interface language to every request. |
 | **State** | `settings`, `Store` | Settings and finished sessions live in `localStorage`. Inside Claude, preferences and history can sync to the artifact database. |
 | **i18n** | `trCore()`, `MutationObserver` | The interface is written in German. When English is on, an observer translates every new text node and attribute from `i18n-en.js`, so new screens are translated without extra code. Model output follows the interface language through the adapter. |
-| **Analytics** | `Track` | Inside Claude only: a pseudonymous count of active days, exercise types and scores, visible to the owner. Never answers or documents. The public demo records nothing. |
+| **Analytics** | `Track` | Inside Claude only: a pseudonymous count of active days, exercise types and scores plus tester feedback, visible to the owner, including the average improvement per person. Never answers or documents. The public demo records nothing. |
 
 ## A session, step by step
 
@@ -92,10 +97,12 @@ It shows up in the setup screen, the interviewer follows `rule`, and the `fach` 
 `npm test` runs two suites, also on every push via GitHub Actions:
 
 - `tests/content.test.mjs` checks the data: every goal points to interview types that exist, rubrics have unique criteria, every weak criterion maps to an existing drill, keywords are lower case, both example languages match.
-- `tests/e2e.test.mjs` opens the page in Chromium: no errors and no third-party requests, the guidance engine walks the journey in the right order, field detection, English switch, demo replay, phone layout in light and dark, every section opens, the theme choice persists.
+- `tests/e2e.test.mjs` opens the page in Chromium (with a fake camera): no errors and no third-party requests, the guidance engine walks the journey in the right order, field detection, English switch, demo replay, video interview with recording and the written fallback, speech analysis, progress per criterion, tester feedback, phone layout in light and dark, the theme choice persists.
+- A guard test fails if two scripts define the same top-level name, since classic scripts silently replace each other's functions.
 
 ## Deliberate choices
 
 - **No build step.** The page runs from disk, on GitHub Pages and as a Claude artifact unchanged. The trade-off is one large `index.html`; the content split is the first step towards modules.
 - **Data over code.** Interview knowledge changes far more often than logic, so it lives in data files that non-developers can edit.
-- **Privacy by default.** No accounts, no server, no third-party requests. The CV is read locally; email addresses, phone numbers and links are stripped before the text reaches the model, and the model is told to leave out address and date of birth.
+- **Camera inside Claude.** Claude artifacts cannot open the camera or microphone, so there the video interview and speech analysis fall back to written answers and device dictation. Both work fully in the public demo.
+- **Privacy by default.** No accounts, no server, no third-party requests from the page itself. The CV is read locally; email addresses, phone numbers and links are stripped before the text reaches the model, and the model is told to leave out address and date of birth.
