@@ -1,12 +1,14 @@
 # Callback
 
+[![Tests](https://github.com/claussec/callback-interview-coach/actions/workflows/test.yml/badge.svg)](https://github.com/claussec/callback-interview-coach/actions/workflows/test.yml)
+
 **Fail here. Not there.**
 
 Callback is an AI-powered interview coach for students and graduates. You rehearse job interviews, assessment centres and case interviews with an AI and get structured feedback before it counts in the real conversation.
 
 > **Status:** Prototype. A personal project to make a product idea and its business model tangible.
 
-**Demo:** https://claussec.github.io/callback-interview-coach/
+**Demo:** https://claussec.github.io/callback-interview-coach/ · click **Watch an example interview** to see a full session replayed with its scorecard.
 
 ![Callback home screen](screenshots/home-light.jpg)
 
@@ -26,9 +28,35 @@ There is no shortage of application advice. What is missing is a place where you
 - **Progress:** six milestones on the ring around the animated orb.
 - German and English, light and dark mode, mobile and desktop.
 
+**Demo replay** – the public demo has no AI, so it plays back a recorded interview and its scorecard:
+
+![Example interview with scorecard](screenshots/demo-replay.jpg)
+
 | Dark mode | Mobile | Onboarding |
 |---|---|---|
 | ![Dark mode](screenshots/home-dark.jpg) | ![Mobile view](screenshots/mobile.jpg) | ![Onboarding](screenshots/onboarding.jpg) |
+
+## How it works
+
+- **No build step, no framework:** `index.html` plus five content files. Runs from disk, on GitHub Pages and as a Claude artifact unchanged.
+- **Data over code:** interview types, assessment centre exercises, scoring rubrics, drills and fields of work live in [`content/`](content). Adding an interview type is one entry, not a code change.
+- **Guidance engine:** the home screen asks one function, `nextStep()`, what matters most right now, based on progress, weakest criterion and days until the interview.
+- **One AI seam:** every model call goes through `aiCall()` / `aiJson()`. The AI features use the Claude Artifacts runtime and **do not run in the GitHub demo**, which shows a recorded session instead. Swapping in your own backend means changing those two functions.
+- **Tested:** content consistency and end-to-end browser tests run on every push.
+
+More in [ARCHITECTURE.md](ARCHITECTURE.md), ideas in [ROADMAP.md](ROADMAP.md), setup in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+```
+index.html            app: guidance engine, prompt builders, sessions, interface
+content/
+  interviews.js       interview types, AC exercises, case setup, scoring rubrics
+  drills.js           short drills
+  areas.js            fields of work and detection keywords
+  examples.js         recorded example sessions (demo mode)
+  i18n-en.js          German → English dictionary
+tests/                content checks (Node) and browser tests (Playwright)
+fonts/                self-hosted fonts, no third-party requests
+```
 
 ## Privacy
 
@@ -37,14 +65,7 @@ There is no shortage of application advice. What is missing is a place where you
 
 ## Business model (concept)
 
-Freemium: short drills and tests are free, full simulations are limited per week. A time-limited Application Pass unlocks everything for the busy phase of an application.
-
-## Tech
-
-- A single file (`index.html`) with HTML, CSS and JavaScript, no framework and no build step.
-- Data stays in the browser (localStorage). There is no account and no backend. The CV is read locally, and contact details are removed before analysis.
-- No third-party requests: fonts are served from this repository, and the public demo has no tracking.
-- The AI features rely on the Claude Artifacts runtime. **They therefore do not run in the GitHub demo**; the home screen, design, tests and mental maths work. Running it standalone would need a small server that forwards AI requests with its own API key.
+Freemium: short drills and tests free, full simulations limited per week, a time-limited Application Pass, and a licence for career services. Switched off in the prototype; see [ROADMAP.md](ROADMAP.md).
 
 ## How it was built
 

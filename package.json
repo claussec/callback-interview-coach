@@ -1,0 +1,16 @@
+{
+  "name": "callback-interview-coach",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Callback – AI interview coach (prototype). Static single-page app, no build step.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:content": "node --test tests/content.test.mjs",
+    "test:e2e": "node --test tests/e2e.test.mjs",
+    "serve": "npx --yes http-server -p 8080 -c-1 ."
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
