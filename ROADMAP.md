@@ -18,7 +18,7 @@ Where Callback could go next, roughly in order of impact. Each item names the pa
 | 5 | **Company question banks** | Typical questions and values per employer (public sources), so "Trainee at Siemens" feels different from "Trainee at Aldi". | new content file, prompt builders |
 | 6 | **Progress over time** | *Done:* chart per practice type and change per criterion. Next: weekly goals and reminders before the interview date. | `progressData()` |
 | 7 | **More fields and languages** | Law, medicine, public sector in depth; French and Spanish interfaces. | `areas.js`, new `i18n-*.js` |
-| 8 | **Video interview practice** | *Done:* timed one-way interviews with local recording. Next: feedback on eye contact and framing from the video itself (on-device), and employer-specific question sets. | `Video` |
+| 8 | **Video interview practice** | *Done:* timed one-way interviews, video mode for every interview, on-device eye contact and steadiness. Next: employer-specific question sets and AI feedback on still frames (posture, expression) once a backend exists. | `Video`, `Cam`, `Body` |
 
 ## Later: for organisations
 

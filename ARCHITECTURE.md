@@ -44,6 +44,9 @@ flowchart LR
 | **Prompt builders** | `fitRules()`, `acRules()`, `buildCaseCfg()`, `docsPrompt()`, `drillGenPrompt()` | Combine content, the user's CV, the job ad and the field into instructions for the model. |
 | **Sessions** | `startFit()`, `startAc()`, `startCase()`, `startDocs()`, `startDrill()` | Run a conversation turn by turn, then request a structured scorecard (JSON) and render it. A weak criterion maps to a drill via `CRIT_DRILL`, which closes the loop back to the guidance engine. |
 | **Video interview** | `Video` | Camera and microphone via `getUserMedia`, timed prep and answer, local recording with `MediaRecorder` (blob URLs, never uploaded), transcript from the browser's speech recognition. Rated by the AI from the transcript, or by the user after watching. Falls back to audio only, then to written answers. |
+| **Answer modes** | `settings.mode`, `Cam` | Every interview, AC exercise and case runs written, spoken (`cfg.oral`) or video (`cfg.video`). In video mode `Cam` keeps one camera stream for the session and records each spoken answer as a clip (memory only) while `Body` measures it. Inside Claude the camera is blocked, so video falls back to spoken and is marked work in progress. |
+| **Body language** | `Body` | MediaPipe face landmarks from `vendor/mediapipe`, loaded only when the camera is on, sampled five times a second: face in frame, eye contact (head pose plus gaze), head movement, framing, light. Estimates, never stored as images. |
+| **Self-assessment** | `Self`, `selfCompareHTML()` | Before the AI scorecard the user rates the same rubric; the scorecard shows both and the average gap. |
 | **Speech analysis** | `speechStats()`, `speechSummary()` | Words per minute and filler words for answers given by microphone, per answer and per session. Word lists and pace limits in `speech.js`. |
 | **Progress** | `progressData()` | Scores per session in order and each criterion's change from the first to the latest sessions, per practice type. |
 | **Tester feedback** | `Feedback` | Asks "was this helpful?" after the 1st, 4th and 10th exercise; answers go to the owner's usage view. |
@@ -97,7 +100,7 @@ It shows up in the setup screen, the interviewer follows `rule`, and the `fach` 
 `npm test` runs two suites, also on every push via GitHub Actions:
 
 - `tests/content.test.mjs` checks the data: every goal points to interview types that exist, rubrics have unique criteria, every weak criterion maps to an existing drill, keywords are lower case, both example languages match.
-- `tests/e2e.test.mjs` opens the page in Chromium (with a fake camera): no errors and no third-party requests, the guidance engine walks the journey in the right order, field detection, English switch, demo replay, video interview with recording and the written fallback, speech analysis, progress per criterion, tester feedback, phone layout in light and dark, the theme choice persists.
+- `tests/e2e.test.mjs` serves the folder over HTTP like GitHub Pages and opens it in Chromium (with a fake camera): no errors and no third-party requests, the guidance engine walks the journey in the right order, field detection, English switch, demo replay, video interview with recording and the written fallback, speech analysis, a full interview in video mode with recording, speech and body analysis and self-assessment, the body language maths, progress per criterion, tester feedback, phone layout in light and dark, the theme choice persists.
 - A guard test fails if two scripts define the same top-level name, since classic scripts silently replace each other's functions.
 
 ## Deliberate choices

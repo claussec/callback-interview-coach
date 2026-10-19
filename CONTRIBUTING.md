@@ -4,7 +4,7 @@ Thanks for looking. Callback is a personal prototype, and ideas, issues and pull
 
 ## Run it
 
-No build step. Open `index.html` in a browser, or serve the folder:
+No build step. Serve the folder (video mode loads an ES module and WebAssembly, which browsers do not load from `file://`):
 
 ```bash
 npm run serve        # http://localhost:8080

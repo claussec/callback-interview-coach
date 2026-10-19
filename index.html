@@ -1342,6 +1342,18 @@ input[type="date"]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3
 .pg-crit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .pg-crit li{display:flex;justify-content:space-between;gap:10px}
 .pg-crit li span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+/* answer modes: camera panel, work-in-progress badge, clips, body language */
+.wip{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.02em;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);vertical-align:2px;text-transform:none}
+.panel.cam .cam-box{position:relative;margin-top:10px;border-radius:16px;overflow:hidden;background:#0b0b0d;aspect-ratio:4/3}
+.panel.cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.panel.cam p{margin:8px 0 0}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.clips figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.clips video{width:100%;border-radius:14px;background:#000}
+.clips figcaption{font-size:13px;color:var(--muted)}
+.selfv{display:block;font-size:11.5px;font-weight:500;color:var(--muted);white-space:nowrap}
+.self-cmp{margin:0;padding:12px 16px;border-radius:14px;background:var(--surface);font-size:14.5px}
+.body-notes{margin:10px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}
 /* demo replay */
 .pw.demo{max-width:760px}
 .demo-log{margin-top:4px}
@@ -1729,6 +1741,7 @@ body{background:transparent}
   <div class="pw-back" id="sheet-dlg" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden><div class="pw sheet" id="sheet-box"></div></div>
   <div class="pw-back onb-back" id="onb" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden><div class="pw onb" id="onb-box"></div></div>
   <div class="fbq" id="fbq" hidden></div>
+  <div class="pw-back" id="self-dlg" role="dialog" aria-modal="true" aria-labelledby="self-title" hidden><div class="pw" id="self-box"></div></div>
   <div class="pw-back" id="video-dlg" role="dialog" aria-modal="true" aria-labelledby="video-title" hidden><div class="pw video" id="video-box"></div></div>
   <div class="pw-back" id="demo-dlg" role="dialog" aria-modal="true" aria-labelledby="demo-title" hidden><div class="pw demo" id="demo-box"></div></div>
   <div class="pw-back" id="paywall" role="dialog" aria-modal="true" aria-labelledby="pw-title" hidden><div class="pw" id="pw-box"></div></div>
@@ -3312,8 +3325,8 @@ function initSetup(){
   radioSeg($('#case-level'),'case-level',Object.entries(LEVELS).map(([id,v])=>({id,label:v.label,short:v.short})),settings.level,v=>{settings.level=v;saveSettings();});
   radioSeg($('#case-style'),'case-style',Object.entries(STYLES).map(([id,v])=>({id,label:v.label,short:v.short})),settings.style,v=>{settings.style=v;saveSettings();});
   radioSeg($('#case-speed'),'case-speed',Object.entries(SPEEDS).map(([id,v])=>({id,label:v.label,short:v.short})),settings.speed,v=>{settings.speed=v;saveSettings();});
-  const modeItems=[{id:'text',label:'Schriftlich',short:'du tippst deine Antworten'},{id:'oral',label:'Mündlich',short:'Interviewer spricht, du diktierst'}];
-  const setMode=v=>{settings.mode=v==='oral'?'oral':'text';saveSettings();['case','fit','ac'].forEach(k=>{const r=$('#'+k+'-mode-'+settings.mode);if(r)r.checked=true;const h=$('#'+k+'-oral-hint');if(h)h.textContent=settings.mode==='oral'?oralHintText():'';});};
+  const modeItems=[{id:'text',label:'Schriftlich',short:'du tippst deine Antworten'},{id:'oral',label:'Gesprochen',short:'Interviewer spricht, du antwortest per Mikrofon'},{id:'video',label:IN_CLAUDE?'Video · in Arbeit':'Video',short:'Kamera an, jede Antwort wird aufgenommen'}];
+  const setMode=v=>{settings.mode=['oral','video'].includes(v)?v:'text';saveSettings();['case','fit','ac'].forEach(k=>{const r=$('#'+k+'-mode-'+settings.mode);if(r)r.checked=true;const h=$('#'+k+'-oral-hint');if(h)h.textContent=modeHintText();});};
   radioSeg($('#case-mode'),'case-mode',modeItems,settings.mode,setMode);
   radioSeg($('#fit-mode'),'fit-mode',modeItems,settings.mode,setMode);
   radioSeg($('#ac-mode'),'ac-mode',modeItems,settings.mode,setMode);
@@ -3391,7 +3404,7 @@ function buildCaseCfg(){
   const T=CASE_TYPES.find(t=>t.id===type);
   const ar=areaDef((activeApp()||{}).area);
   const industry=INDUSTRIES.includes(settings.industry)?settings.industry:(ar&&ar.ind)||pick(INDUSTRIES);
-  return {type,typeLabel:T.label,industry,level:LEVELS[settings.level]?settings.level:'mittel',lang:LANGS[settings.lang]?settings.lang:'de',style:STYLES[settings.style]?settings.style:'kandidat',firm:(settings.firm||'').trim()||'einer Strategieberatung',position:(settings.position||'').trim()||'eine Einstiegsposition',speed:settings.speed==='thorough'?'thorough':'quick',oral:settings.mode==='oral'};
+  return {type,typeLabel:T.label,industry,level:LEVELS[settings.level]?settings.level:'mittel',lang:LANGS[settings.lang]?settings.lang:'de',style:STYLES[settings.style]?settings.style:'kandidat',firm:(settings.firm||'').trim()||'einer Strategieberatung',position:(settings.position||'').trim()||'eine Einstiegsposition',speed:settings.speed==='thorough'?'thorough':'quick',oral:settings.mode==='oral'||settings.mode==='video',video:settings.mode==='video'};
 }
 async function startCase(){
   TTS.unlock();
@@ -3418,7 +3431,7 @@ async function startCase(){
 }
 function buildFitCfg(){
   const art=FIT_ARTS[settings.fitArt]?settings.fitArt:'klassisch';
-  return {art,area:areaLabel(activeApp(),'de'),artLabel:FIT_ARTS[art].label,firm:(settings.firm||'').trim()||'einem Unternehmen',position:(settings.position||'').trim()||'eine Einstiegsposition',lang:LANGS[settings.fitLang]?settings.fitLang:'de',n:settings.fitN===5?5:3,profile:(settings.profile||'').trim()||'(kein Profil angegeben)',jobAd:String(settings.jobAd||'').trim().slice(0,6000),focusQs:'',stories:art==='gehalt'?'':storiesText(settings.stories),speed:settings.speed==='thorough'?'thorough':'quick',oral:settings.mode==='oral'};
+  return {art,area:areaLabel(activeApp(),'de'),artLabel:FIT_ARTS[art].label,firm:(settings.firm||'').trim()||'einem Unternehmen',position:(settings.position||'').trim()||'eine Einstiegsposition',lang:LANGS[settings.fitLang]?settings.fitLang:'de',n:settings.fitN===5?5:3,profile:(settings.profile||'').trim()||'(kein Profil angegeben)',jobAd:String(settings.jobAd||'').trim().slice(0,6000),focusQs:'',stories:art==='gehalt'?'':storiesText(settings.stories),speed:settings.speed==='thorough'?'thorough':'quick',oral:settings.mode==='oral'||settings.mode==='video',video:settings.mode==='video'};
 }
 async function startFit(focusQs){
   TTS.unlock();
@@ -3448,7 +3461,7 @@ function initAc(){
 }
 function buildAcCfg(){
   const type=AC_TYPES[settings.acType]?settings.acType:'gruppe';
-  return {type,area:areaLabel(activeApp(),'de'),typeLabel:AC_TYPES[type].label,firm:(settings.firm||'').trim()||'einem großen Unternehmen',position:(settings.position||'').trim()||'ein Traineeprogramm',lang:LANGS[settings.lang]?settings.lang:'de',speed:settings.speed==='thorough'?'thorough':'quick',oral:settings.mode==='oral'};
+  return {type,area:areaLabel(activeApp(),'de'),typeLabel:AC_TYPES[type].label,firm:(settings.firm||'').trim()||'einem großen Unternehmen',position:(settings.position||'').trim()||'ein Traineeprogramm',lang:LANGS[settings.lang]?settings.lang:'de',speed:settings.speed==='thorough'?'thorough':'quick',oral:settings.mode==='oral'||settings.mode==='video',video:settings.mode==='video'};
 }
 async function startAc(type){
   TTS.unlock();
@@ -4006,6 +4019,125 @@ function goalSentence(a){
   return `<p class="goal-line">${L('Ich übe für','I’m practising for')} ${chip(a&&a.position,L('Stelle','role'))} ${L('bei','at')} ${chip(a&&a.firm,L('Firma','company'))} ${L('im Bereich','in')} ${chip(ar,L('Bereich','field'))}${a&&a.date?` · ${chip(d>=0?(d===0?L('heute','today'):d===1?L('morgen','tomorrow'):L(`in ${d} Tagen`,`in ${d} days`)):L('Termin vorbei','date passed'),'')}`:` · ${chip('',L('Termin?','date?'))}`}</p>
     <p class="goal-sub">${a&&a.areaAuto!==false&&ar?`<span class="auto-tag">${L('Bereich automatisch erkannt','Field detected automatically')}</span> · `:''}${esc(trStr(T.label))}${(settings.apps||[]).length>1?` · <button type="button" class="linkbtn" data-goal>${L('Andere Bewerbung','Other application')}</button>`:''}</p>`;
 }
+/* ---------------- body language, measured on the device ----------------
+   MediaPipe face landmarks (vendor/mediapipe, loaded only when the camera is on) sampled
+   five times a second while an answer is recorded: is the face in the picture, does the
+   person look into the camera, how much does the head move, is the face well framed and lit.
+   Rough estimates, labelled as such. Frames are never stored or sent anywhere. */
+const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
+const Body={
+  lm:null,loading:null,failed:false,acc:null,t:null,cv:null,
+  load(){
+    if(this.loading)return this.loading;
+    const base=new URL('vendor/mediapipe/',location.href).href;
+    this.loading=(async()=>{
+      const m=await import(base+'vision_bundle.mjs');
+      const fs=await m.FilesetResolver.forVisionTasks(base+'wasm');
+      const opts=d=>({baseOptions:{modelAssetPath:base+'face_landmarker.task',delegate:d},runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true});
+      try{this.lm=await m.FaceLandmarker.createFromOptions(fs,opts('GPU'));}catch(e){this.lm=await m.FaceLandmarker.createFromOptions(fs,opts('CPU'));}
+      return this.lm;
+    })().catch(()=>{this.failed=true;return null;});
+    return this.loading;
+  },
+  start(video){
+    this.stop();this.acc={n:0,face:0,eye:0,cx:[],cy:[],size:[],light:[]};
+    this.load().then(lm=>{if(!lm||!this.acc)return;const acc=this.acc;this.t=setInterval(()=>this.sample(video,acc),200);});
+  },
+  sample(video,acc){
+    if(!video||video.readyState<2||!this.lm||acc!==this.acc)return;
+    let r;try{r=this.lm.detectForVideo(video,performance.now());}catch(e){return;}
+    acc.n++;
+    const f=r&&r.faceLandmarks&&r.faceLandmarks[0];
+    if(acc.n%5===1)acc.light.push(this.light(video));
+    if(!f)return;
+    acc.face++;
+    const nose=f[1],l=f[234],rt=f[454],top=f[10],chin=f[152];
+    const yaw=(nose.x-l.x)/Math.max(1e-3,rt.x-l.x);
+    const pitch=(nose.y-top.y)/Math.max(1e-3,chin.y-top.y);
+    const bs={};((r.faceBlendshapes&&r.faceBlendshapes[0]&&r.faceBlendshapes[0].categories)||[]).forEach(c=>bs[c.categoryName]=c.score);
+    const look=Math.max(bs.eyeLookOutLeft||0,bs.eyeLookOutRight||0,bs.eyeLookInLeft||0,bs.eyeLookInRight||0,bs.eyeLookUpLeft||0,bs.eyeLookDownLeft||0);
+    if(Math.abs(yaw-.5)<.13&&pitch>.35&&pitch<.65&&look<.5)acc.eye++;
+    acc.cx.push((l.x+rt.x)/2);acc.cy.push((top.y+chin.y)/2);acc.size.push(chin.y-top.y);
+  },
+  light(video){
+    try{const c=this.cv||(this.cv=document.createElement('canvas'));c.width=32;c.height=24;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(video,0,0,32,24);
+      const d=x.getImageData(0,0,32,24).data;let s=0;for(let i=0;i<d.length;i+=4)s+=d[i]*.299+d[i+1]*.587+d[i+2]*.114;return s/(d.length/4)/255;}catch(e){return null;}
+  },
+  stop(){
+    clearInterval(this.t);this.t=null;const a=this.acc;this.acc=null;
+    if(!a||a.n<5)return null;
+    const sd=v=>{if(v.length<2)return 0;const m=avg(v);return Math.sqrt(avg(v.map(x=>(x-m)**2)));};
+    const lights=a.light.filter(x=>x!=null);
+    return {n:a.n,face:Math.round(a.face/a.n*100),eye:a.face?Math.round(a.eye/a.face*100):0,move:Math.round((sd(a.cx)+sd(a.cy))*1000)/10,size:a.size.length?Math.round(avg(a.size)*100):null,light:lights.length?Math.round(avg(lights)*100):null};
+  },
+  merge(list){
+    list=(list||[]).filter(Boolean);if(!list.length)return null;
+    const w=list.reduce((s,x)=>s+x.n,0),wa=k=>{const v=list.filter(x=>x[k]!=null);const ww=v.reduce((s,x)=>s+x.n,0);return ww?Math.round(v.reduce((s,x)=>s+x[k]*x.n,0)/ww*10)/10:null;};
+    return {n:w,face:wa('face'),eye:wa('eye'),move:wa('move'),size:wa('size'),light:wa('light')};
+  }
+};
+function bodyNotes(b){
+  const out=[];
+  if(b.face<60)out.push(L('Dein Gesicht war oft nicht im Bild. Setz dich mittig vor die Kamera.','Your face was often out of frame. Sit centred in front of the camera.'));
+  else{
+    out.push(b.eye>=70?L('Guter Blickkontakt: Du hast meist in die Kamera geschaut.','Good eye contact: you mostly looked into the camera.'):b.eye>=45?L('Blickkontakt mittel. Schau beim Kernsatz bewusst in die Kamera, nicht auf dein Bild.','Moderate eye contact. Look into the camera for your key sentence, not at your own image.'):L('Wenig Blickkontakt. Kleb dir einen Punkt neben die Kamera und sprich zu ihm.','Little eye contact. Put a sticker next to the camera and talk to it.'));
+    if(b.move>4)out.push(L('Viel Kopfbewegung. Ruhiger sitzen wirkt souveräner.','A lot of head movement. Sitting still looks more confident.'));
+    if(b.size!=null&&b.size<22)out.push(L('Du bist recht klein im Bild. Rück näher an die Kamera.','You appear small in the frame. Move closer to the camera.'));
+    if(b.size!=null&&b.size>60)out.push(L('Du bist sehr nah dran. Etwas Abstand wirkt ruhiger.','You are very close. A little more distance looks calmer.'));
+  }
+  if(b.light!=null&&b.light<28)out.push(L('Das Bild ist dunkel. Licht von vorne, nicht von hinten.','The picture is dark. Light from the front, not from behind.'));
+  return out;
+}
+function bodyHTML(b){
+  if(!b)return '';
+  const v=(x,good,ok)=>x==null?'neutral':x>=good?'good':x>=ok?'warn':'bad';
+  return `<section class="speech body"><h3 class="h3">${L('Auftreten vor der Kamera','On-camera presence')} <span class="wip">${L('Schätzung','estimate')}</span></h3>
+    <div class="sp-grid">
+      <div><div class="eyebrow">${L('Blickkontakt','Eye contact')}</div><b>${b.face>=30&&b.eye!=null?b.eye+' %':'–'}</b><span>${L('der Zeit in die Kamera','of the time into the camera')}</span>${b.face>=30?`<span class="pill ${v(b.eye,70,45)}">${b.eye>=70?L('gut','good'):b.eye>=45?L('mittel','medium'):L('ausbaufähig','needs work')}</span>`:''}</div>
+      <div><div class="eyebrow">${L('Im Bild','In frame')}</div><b>${b.face!=null?b.face+' %':'–'}</b><span>${L('Gesicht erkannt','face detected')}</span></div>
+      <div><div class="eyebrow">${L('Ruhe','Steadiness')}</div><b>${b.face<30?'–':b.move<=2?L('ruhig','calm'):b.move<=4?L('etwas unruhig','a bit restless'):L('unruhig','restless')}</b><span>${L('Kopfbewegung','head movement')}</span></div>
+    </div>
+    <ul class="body-notes">${bodyNotes(b).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    <p class="small muted" style="margin:6px 0 0">${L('Gemessen auf deinem Gerät mit einer Gesichtserkennung. Kein Bild verlässt den Browser.','Measured on your device with face detection. No image leaves your browser.')}</p>
+  </section>`;
+}
+
+/* ---------------- camera during interviews (answer mode "video") ----------------
+   One stream per session. Each answer given by microphone is also recorded on video and
+   measured by Body. Clips live only in memory for this page visit. */
+const Clips={};
+const Cam={
+  stream:null,kind:null,rec:null,chunks:[],
+  async attach(kind){
+    const R=REFS[kind],s=ACTIVE[kind];if(!R||!R.camv||!s)return;
+    this.kind=kind;
+    if(IN_CLAUDE){R.camnote.innerHTML=`<span class="wip">${L('in Arbeit','work in progress')}</span> ${esc(L('Claude gibt Seiten keinen Zugriff auf die Kamera. Hier läuft der Video-Modus deshalb als mündlicher Modus. Voll funktioniert er, sobald Callback eigenständig im Browser läuft.','Claude does not give pages camera access, so here video mode runs as spoken mode. It works fully once Callback runs on its own in the browser.'))}`;R.camv.closest('.cam-box').hidden=true;return;}
+    try{
+      if(!this.stream||!this.stream.active)this.stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},facingMode:'user'},audio:true});
+      R.camv.srcObject=this.stream;R.camnote.textContent=L('Kamera läuft. Klick auf „Sprechen“, um eine Antwort aufzunehmen.','Camera on. Click “Speak” to record an answer.');
+      Body.load();
+    }catch(e){R.camnote.textContent=L('Keine Kamera verfügbar. Du antwortest mündlich ohne Video.','No camera available. You answer by voice without video.');R.camv.closest('.cam-box').hidden=true;}
+  },
+  recording(){return !!(this.rec&&this.rec.state==='recording');},
+  startAnswer(kind){
+    const R=REFS[kind];if(!this.stream||!this.stream.active||this.recording()||!window.MediaRecorder)return;
+    try{this.chunks=[];this.rec=new MediaRecorder(this.stream);this.rec.ondataavailable=e=>{if(e.data&&e.data.size)this.chunks.push(e.data);};this.rec.start(500);}catch(e){this.rec=null;return;}
+    Body.start(R.camv);if(R.camrec)R.camrec.hidden=false;
+  },
+  stopAnswer(kind){
+    const R=REFS[kind];if(R&&R.camrec)R.camrec.hidden=true;
+    const body=Body.stop();
+    if(!this.recording())return Promise.resolve({url:null,body});
+    const rec=this.rec;this.rec=null;
+    return new Promise(res=>{rec.onstop=()=>{const b=new Blob(this.chunks,{type:rec.mimeType||'video/webm'});res({url:b.size?URL.createObjectURL(b):null,body});};try{rec.stop();}catch(e){res({url:null,body});}});
+  },
+  stop(){if(this.recording())try{this.rec.stop();}catch(e){}this.rec=null;Body.stop();if(this.stream)this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
+};
+function clipsHTML(id){
+  const c=Clips[id];if(!c||!c.length)return '';
+  return `<section><h3 class="h3">${L('Deine Aufnahmen','Your recordings')}</h3><p class="small muted" style="margin:0 0 10px">${L('Nur in diesem Browserfenster gespeichert. Beim Neuladen sind sie weg.','Only kept in this browser window. They are gone when you reload.')}</p>
+    <div class="clips">${c.map(x=>`<figure><video src="${x.url}" controls playsinline preload="metadata"></video><figcaption>${esc(x.q||'')}</figcaption></figure>`).join('')}</div></section>`;
+}
 /* ---------------- speech analysis ----------------
    For answers given by microphone: speaking pace and filler words. Text answers get none.
    Word lists and pace limits live in content/speech.js. */
@@ -4091,6 +4223,51 @@ function progressHTML(list){
       <p class="small muted" style="margin:0">${p.n===1?L('Erste gegen letzte Übung.','First against latest session.'):L(`Ø der ersten ${p.n} gegen Ø der letzten ${p.n} Übungen.`,`Average of the first ${p.n} against the latest ${p.n} sessions.`)} ${L('Die Linie bei 4 ist Zusage-Niveau.','The line at 4 is offer level.')}</p>
     </div>`).join('')}</div></section>`;
 }
+/* ---------------- self-assessment ----------------
+   Before the AI scorecard, the user rates themselves on the same rubric. The scorecard then
+   shows both, which trains the skill interviews reward most: judging your own answers. */
+const Self={
+  kind:null,vals:{},
+  ask(kind){
+    const s=ACTIVE[kind];if(!s)return;
+    this.kind=kind;this.vals={};
+    const crit=critFor(kind,s.cfg);
+    $('#self-box').innerHTML=`<div class="pw-head"><div><div class="eyebrow">${L('Bevor die Bewertung kommt','Before the scorecard')}</div><h2 class="h2" id="self-title">${L('Wie lief es aus deiner Sicht?','How did it go, in your view?')}</h2>
+      <p class="muted" style="margin:6px 0 0">${L('Bewerte dich ehrlich von 1 (schwach) bis 5 (stark). Danach siehst du deine Einschätzung neben der Bewertung.','Rate yourself honestly from 1 (weak) to 5 (strong). Afterwards you see your rating next to the scorecard.')}</p></div>
+      <button type="button" class="btn ghost small" data-sf="skip" aria-label="${L('Überspringen','Skip')}">✕</button></div>
+      <div class="v-self">${crit.map(([id,label])=>`<div class="v-sr"><span>${esc(trStr(label))}</span><span class="chips" role="radiogroup" aria-label="${esc(trStr(label))}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="false" data-sv="${id}:${n}">${n}</button>`).join('')}</span></div>`).join('')}</div>
+      <div class="actions"><button type="button" class="btn primary" data-sf="go" disabled>${L('Weiter zur Bewertung','On to the scorecard')}</button><button type="button" class="linkbtn" data-sf="skip">${L('Überspringen','Skip')}</button></div>`;
+    $('#self-dlg').hidden=false;
+  },
+  pick(id,n){
+    this.vals[id]=n;
+    $$('#self-box [data-sv^="'+id+':"]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.sv===id+':'+n)));
+    const s=ACTIVE[this.kind];const go=$('[data-sf="go"]');
+    if(go&&s)go.disabled=critFor(this.kind,s.cfg).some(([k])=>!this.vals[k]);
+  },
+  done(skip){
+    const s=ACTIVE[this.kind];$('#self-dlg').hidden=true;
+    if(!s)return;
+    if(skip)s.selfSkip=true;else s.self={...this.vals};
+    persistActive(true);runFeedback(this.kind);
+  }
+};
+document.addEventListener('click',e=>{
+  const v=e.target.closest('[data-sv]');if(v){const [id,n]=v.dataset.sv.split(':');Self.pick(id,+n);return;}
+  const f=e.target.closest('[data-sf]');if(f){Self.done(f.dataset.sf==='skip');return;}
+});
+function selfCompareHTML(rec){
+  const self=rec.self,ks=(rec.feedback&&rec.feedback.kriterien||[]).filter(k=>k.punkte!=null&&self&&self[k.id]!=null);
+  if(!ks.length||rec.feedback.self)return '';
+  const d=avg(ks.map(k=>self[k.id]-k.punkte));
+  const big=ks.reduce((a,k)=>Math.abs(self[k.id]-k.punkte)>Math.abs(self[a.id]-a.punkte)?k:a);
+  const gap=self[big.id]-big.punkte;
+  const txt=Math.abs(d)<.5?L('Deine Einschätzung liegt nah an der Bewertung. Gutes Gespür für die eigene Wirkung.','Your rating is close to the scorecard. A good sense of how you come across.')
+    :d>0?L(`Du schätzt dich im Schnitt um ${fmt1(d)} Punkte besser ein als die Bewertung.`,`On average you rate yourself ${fmt1(d)} points higher than the scorecard.`)
+    :L(`Du bist im Schnitt um ${fmt1(-d)} Punkte strenger mit dir als die Bewertung.`,`On average you are ${fmt1(-d)} points stricter with yourself than the scorecard.`);
+  const bigTxt=Math.abs(gap)>=1?' '+L(`Größter Unterschied: ${trStr(big.label)} (du ${self[big.id]}, Bewertung ${big.punkte}).`,`Biggest gap: ${trStr(big.label)} (you ${self[big.id]}, scorecard ${big.punkte}).`):'';
+  return `<p class="self-cmp"><b>${L('Selbstbild','Self-assessment')}:</b> ${esc(txt+bigTxt)}</p>`;
+}
 /* ---------------- tester feedback ----------------
    A small card after a finished exercise: how helpful was it (1-5) and what was missing.
    Asked after the 1st, 4th and 10th exercise only. Answers stay in the browser and, inside
@@ -4146,7 +4323,7 @@ const Video={
   },
   close(silent){
     const s=this.st;if(!s)return;
-    clearInterval(s.t);this.stopCapture();
+    clearInterval(s.t);this.stopCapture();Body.stop();
     if(s.stream)s.stream.getTracks().forEach(t=>t.stop());
     (s.items||[]).forEach(it=>{if(it.url)URL.revokeObjectURL(it.url);});
     this.st=null;
@@ -4210,6 +4387,7 @@ const Video={
     if(s.stream&&window.MediaRecorder){
       try{s.chunks=[];s.rec=new MediaRecorder(s.stream);s.rec.ondataavailable=e=>{if(e.data&&e.data.size)s.chunks.push(e.data);};s.rec.start(500);}catch(e){s.rec=null;}
     }
+    if(s.mode==='video'){const v=$('#v-live');if(v)Body.start(v);}
     if(s.stream&&SR.Ctor){
       try{const r=new SR.Ctor();r.lang=this.lang()==='en'?'en-GB':'de-DE';r.continuous=true;r.interimResults=true;
         r.onresult=ev=>{let interim='';for(let i=ev.resultIndex;i<ev.results.length;i++){const x=ev.results[i];if(x.isFinal)s.fin+=x[0].transcript+' ';else interim+=x[0].transcript;}const t=$('#v-tx');if(t)t.textContent=(s.fin+interim).trim();};
@@ -4228,12 +4406,14 @@ const Video={
   async done(){
     const s=this.st;if(!s||s.sub!=='answer')return;s.sub='saving';clearInterval(s.t);
     const sec=(performance.now()-s.t0)/1000;
+    const body=s.mode==='video'?Body.stop():null;
     const blob=await this.stopCapture();
     if(!this.st)return;
     const ta=$('#v-text');
     const text=(s.mode==='text'?(ta?ta.value:''):s.fin).trim();
     const item={q:s.qs[s.i],text,sec:Math.round(sec),url:blob&&blob.size?URL.createObjectURL(blob):null,av:s.mode};
     if(s.mode!=='text'&&text)item.sp=speechStats(text,sec,this.lang());
+    if(body)item.body=body;
     s.items.push(item);
     if(s.i+1<s.qs.length){s.i++;s.sub=null;this.render();}
     else{if(s.stream)s.stream.getTracks().forEach(t=>t.stop());s.stream=null;s.phase='review';this.render();}
@@ -4249,11 +4429,11 @@ const Video={
         ${it.text?`<p class="v-ans">${esc(it.text)}</p>`:`<p class="small muted">${it.av==='text'?L('Keine Antwort geschrieben.','No answer written.'):L('Kein Transkript: Die Spracherkennung ist in diesem Browser nicht verfügbar. Sieh dir die Aufnahme an.','No transcript: speech recognition is not available in this browser. Watch the recording.')}</p>`}
         ${it.sp?speechChipHTML(it.sp):''}</section>`).join('')}</div>
       ${sum?speechHTML(sum):''}
+      ${bodyHTML(Body.merge(s.items.map(x=>x.body)))}
       <section class="v-rate" id="v-rate"><h3 class="h3">${ai?L('Bewertung','Rating'):L('Deine Selbsteinschätzung','Your self-assessment')}</h3>
-        ${ai?`<p class="small muted" style="margin:0 0 10px">${L('Die KI bewertet deine Antworten anhand des Transkripts. Wirkung vor der Kamera schätzt sie aus Sprache und Tempo, das Bild sieht sie nicht.','The AI rates your answers from the transcript. It judges on-camera impact from language and pace; it does not see the video.')}</p><div class="actions"><button type="button" class="btn primary" data-v="ai">${L('Feedback erstellen','Get feedback')}</button></div>`
-        :`<p class="small muted" style="margin:0 0 10px">${L('Sieh dir deine Aufnahmen an und bewerte dich ehrlich, von 1 (schwach) bis 5 (stark).','Watch your recordings and rate yourself honestly, from 1 (weak) to 5 (strong).')}</p>
+        <p class="small muted" style="margin:0 0 10px">${L('Sieh dir deine Aufnahmen an und bewerte dich ehrlich, von 1 (schwach) bis 5 (stark).','Watch your recordings and rate yourself honestly, from 1 (weak) to 5 (strong).')}${ai?' '+L('Danach bewertet die KI deine Antworten anhand des Transkripts und legt beides nebeneinander. Das Bild sieht sie nicht.','Then the AI rates your answers from the transcript and puts both side by side. It does not see the video.'):''}</p>
           <div class="v-self">${VIDEO_CRIT.map(([id,label])=>`<div class="v-sr"><span>${esc(trStr(label))}</span><span class="chips" role="radiogroup" aria-label="${esc(trStr(label))}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="false" data-vs="${id}:${n}">${n}</button>`).join('')}</span></div>`).join('')}</div>
-          <div class="actions"><button type="button" class="btn primary" data-v="save" disabled>${L('Speichern','Save')}</button></div>`}
+          <div class="actions">${ai?`<button type="button" class="btn primary" data-v="ai">${L('KI-Feedback erstellen','Get AI feedback')}</button>`:''}<button type="button" class="btn${ai?'':' primary'}" data-v="save" disabled>${ai?L('Nur Selbsteinschätzung speichern','Save self-assessment only'):L('Speichern','Save')}</button></div>
       </section>
       <div class="actions"><button type="button" class="btn" data-v="again">${L('Noch einmal','Try again')}</button></div>`;
   },
@@ -4266,7 +4446,8 @@ const Video={
     const s=this.st;
     return {id:uid(),kind:'video',date:new Date().toISOString(),appId:settings.activeApp||'',title:L('Video-Interview','Video interview')+(activeApp()&&activeApp().firm?' · '+activeApp().firm:''),
       meta:{n:s.items.length,answer:s.answer,mode:s.items[0]&&s.items[0].av,self:!!fb.self},durationSec:s.items.reduce((a,x)=>a+x.sec,0),hints:0,endedEarly:false,
-      score:fb.gesamt,verdict:fb.urteil,feedback:fb,speech:speechSummary(s.items.map(x=>x.sp)),
+      score:fb.gesamt,verdict:fb.urteil,feedback:fb,speech:speechSummary(s.items.map(x=>x.sp)),body:Body.merge(s.items.map(x=>x.body)),
+      self:fb.self?null:(s.self&&VIDEO_CRIT.every(([k])=>s.self[k])?{...s.self}:null),
       transcript:s.items.flatMap(x=>[{who:'int',text:x.q},{who:'cand',text:x.text||'–'}])};
   },
   async saveSelf(){
@@ -4282,7 +4463,7 @@ const Video={
     const crit=VIDEO_CRIT.map(([id,l])=>`"${id}" (${l})`).join(', ');
     const prompt=`Du bewertest ein Übungs-Video-Interview (einseitiges, aufgezeichnetes Interview ohne Gegenüber) für ${activeApp()&&activeApp().position?activeApp().position:'eine Einstiegsposition'}${activeApp()&&activeApp().firm?' bei '+activeApp().firm:''}. Antwortzeit je Frage: ${s.answer} Sekunden. Du siehst nur das Transkript der Spracherkennung (kann Erkennungsfehler enthalten) und Messwerte zu Tempo und Füllwörtern, nicht das Bild.
 
-${s.items.map((x,i)=>`FRAGE ${i+1}: ${x.q}\nDAUER: ${x.sec} s${x.sp&&x.sp.wpm?`, ${x.sp.wpm} Wörter/Min., ${x.sp.fillN} Füllwörter`:''}\nANTWORT: ${x.text||'(keine Antwort erkannt)'}`).join('\n\n')}
+${s.items.map((x,i)=>`FRAGE ${i+1}: ${x.q}\nDAUER: ${x.sec} s${x.sp&&x.sp.wpm?`, ${x.sp.wpm} Wörter/Min., ${x.sp.fillN} Füllwörter`:''}${x.body?`, Blickkontakt (geschätzt) ${x.body.eye} %`:''}\nANTWORT: ${x.text||'(keine Antwort erkannt)'}`).join('\n\n')}
 
 Bewerte die Kriterien ${crit} jeweils von 1 bis 5 (4 = würde in die nächste Runde kommen) mit einem Satz Begründung. Sei ehrlich und konkret, zitiere wenn möglich aus den Antworten.
 Antworte nur mit JSON: {"gesamt": Zahl, "urteil": "weiter"|"knapp"|"nein", "zusammenfassung": "2 Sätze", "kriterien": [{"id": "...", "punkte": 1-5, "kommentar": "..."}], "staerken": ["...", "..."], "verbesserungen": [{"punkt": "...", "statt": "Zitat aus einer Antwort", "besser": "stärkere Formulierung"}]}`;
@@ -4409,7 +4590,7 @@ function renderFootNote(){
     P(L('Prototyp.','Prototype.'),'Callback ist ein privates Projekt und kostenlos. Die Bewertungen sind Übungsfeedback, keine Vorhersage echter Ergebnisse.','Callback is a personal project and free to use. Ratings are practice feedback, not a prediction of real results.'),
     P(L('Deine Daten bleiben bei dir.','Your data stays with you.'),'Lebenslauf, Antworten, Bewerbungen und Verlauf werden nur in deinem Browser gespeichert. Es gibt kein Konto und keinen eigenen Server. Zum Löschen entfernst du die Website-Daten dieser Seite in deinem Browser.','Your CV, answers, applications and history are stored only in your browser. There is no account and no server of our own. To delete them, clear this site’s data in your browser.'),
     P(L('KI-Funktionen.','AI features.'),'Interviews, Feedback und Unterlagen-Check laufen nur, wenn du Callback in Claude öffnest. Dann gehen deine Eingaben zur Auswertung an Claude (Anthropic) und werden über deinen eigenen Claude-Zugang verarbeitet; es gelten die Datenschutzbestimmungen von Anthropic. E-Mail-Adressen, Telefonnummern und Links aus dem Lebenslauf werden vor dem Senden entfernt, Adresse und Geburtsdatum lässt die KI im Profil weg. In der öffentlichen Demo wird nichts an eine KI gesendet.','Interviews, feedback and the document check only run when you open Callback in Claude. Your input is then sent to Claude (Anthropic) for evaluation and processed through your own Claude access; Anthropic’s privacy policy applies. Email addresses, phone numbers and links are removed from your CV before sending, and the AI leaves out address and date of birth from your profile. The public demo sends nothing to any AI.'),
-    P(L('Kamera und Mikrofon.','Camera and microphone.'),'Video-Aufnahmen bleiben in deinem Browser und werden nicht hochgeladen; beim Schließen sind sie weg. Für Transkript, Tempo und Füllwörter nutzt Callback die Spracherkennung deines Browsers. In Chrome schickt der Browser das Audio dafür an Google, in anderen Browsern kann es lokal laufen. Wer das nicht möchte, antwortet schriftlich.','Video recordings stay in your browser and are not uploaded; they are gone when you close the dialog. For transcript, pace and fillers Callback uses your browser’s speech recognition. In Chrome the browser sends the audio to Google for this; other browsers may run it locally. If you prefer not to, answer in writing.'),
+    P(L('Kamera und Mikrofon.','Camera and microphone.'),'Video-Aufnahmen bleiben in deinem Browser und werden nicht hochgeladen; beim Schließen sind sie weg. Blickkontakt und Haltung misst eine Gesichtserkennung direkt auf deinem Gerät, es werden keine Bilder gespeichert oder gesendet. Für Transkript, Tempo und Füllwörter nutzt Callback die Spracherkennung deines Browsers. In Chrome schickt der Browser das Audio dafür an Google, in anderen Browsern kann es lokal laufen. Wer das nicht möchte, antwortet schriftlich.','Video recordings stay in your browser and are not uploaded; they are gone when you close the dialog. Eye contact and posture are measured by face detection on your device; no images are stored or sent. For transcript, pace and fillers Callback uses your browser’s speech recognition. In Chrome the browser sends the audio to Google for this; other browsers may run it locally. If you prefer not to, answer in writing.'),
     P(L('Nutzungsstatistik.','Usage statistics.'),'Nur in der Claude-Version zählt Callback ohne Namen, an welchen Tagen welche Übungsarten genutzt werden und welche Punktzahlen herauskommen. Das dient dazu, den Prototyp zu verbessern. Antworten, Transkripte und Unterlagen werden dabei nicht erfasst. Die öffentliche Demo erfasst keine Nutzung.','Only in the Claude version does Callback count, without names, on which days which exercise types are used and which scores result. This helps improve the prototype. Answers, transcripts and documents are not recorded. The public demo records no usage.'),
     P(L('Hosting.','Hosting.'),'Die öffentliche Demo liegt auf GitHub Pages. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse. Schriften werden von derselben Seite geladen, die Seite selbst lädt keine Inhalte von Drittanbietern.','The public demo is hosted on GitHub Pages. GitHub processes technically necessary access data such as your IP address. Fonts are served from the same site; the page itself loads no third-party content.'),
     `<p>${L('Kontakt und Code','Contact and code')}: <a href="https://github.com/claussec/callback-interview-coach" target="_blank" rel="noopener">github.com/claussec/callback-interview-coach</a></p>`
@@ -4698,6 +4879,10 @@ const DICT_STEPS={
   other:['Starte die Diktier- oder Spracheingabe deines Geräts und sprich.']
 };
 function dictationHint(){return DICT_STEPS[platformKind()][0];}
+function modeHintText(){
+  if(settings.mode==='video')return IN_CLAUDE?L('In Arbeit: Claude gibt Seiten keinen Kamerazugriff, deshalb läuft der Video-Modus hier wie „Gesprochen“. Voll funktioniert er, sobald Callback eigenständig im Browser läuft.','Work in progress: Claude does not give pages camera access, so video mode runs like “Spoken” here. It works fully once Callback runs on its own in the browser.'):L('Die Kamera läuft mit. Jede Antwort, die du per Mikrofon gibst, wird aufgenommen und danach zu Blickkontakt, Ruhe, Tempo und Füllwörtern ausgewertet. Die Aufnahmen bleiben in deinem Browser.','The camera runs alongside. Every answer you give by microphone is recorded and then analysed for eye contact, steadiness, pace and fillers. Recordings stay in your browser.');
+  return settings.mode==='oral'?oralHintText():'';
+}
 function oralHintText(){return 'Der Interviewer liest seine Nachrichten vor. Du klickst auf „Sprechen“ und diktierst deine Antwort. '+dictationHint()+' Kopfhörer verhindern, dass das Diktat die Stimme des Interviewers mitschreibt.';}
 /* ---- mic button: browser speech recognition if the frame allows it, else guided device dictation ---- */
 const SR={Ctor:(()=>{try{return window.SpeechRecognition||window.webkitSpeechRecognition||null;}catch(e){return null;}})(),blocked:false,rec:null,kind:null,guided:false};
@@ -4719,6 +4904,7 @@ function micStart(kind){
   const R=REFS[kind],s=ACTIVE[kind];if(!R||!s)return;
   stopSpeech();
   if(SR.rec){micStop();return;}
+  if(s.cfg.video)Cam.startAnswer(kind);
   R.input.focus({preventScroll:true});
   try{const n=R.input.value.length;R.input.setSelectionRange(n,n);}catch(e){}
   if(!SR.Ctor||SR.blocked){showDictGuide(kind);return;}
@@ -4783,6 +4969,7 @@ function runHTML(kind,s){
     </div>
     <aside class="run-side" aria-label="Zeit und Notizen">
       <div class="panel"><div class="eyebrow">Zeit</div><div class="timer" data-r="timer">00:00</div><div class="tbar" data-r="tbarw"><i data-r="tbar"></i></div><div class="small muted" data-r="tnote"></div></div>
+      ${s&&s.cfg.video?`<div class="panel cam"><div class="eyebrow">${L('Video','Video')}</div><div class="cam-box"><video data-r="camv" autoplay muted playsinline></video><div class="v-rec" data-r="camrec" hidden><i></i>${L('Aufnahme','Recording')}</div></div><p class="small muted" data-r="camnote"></p></div>`:''}
       ${voicePanelHTML(kind,s)}
       ${isCase?'<div class="panel"><div class="eyebrow">Phase</div><ol class="phases" data-r="phases"></ol></div>':kind==='ac'?`<div class="panel"><div class="eyebrow">So gehst du vor</div><ol class="steps" style="margin-top:10px">${((AC_TYPES[s.cfg.type]||AC_TYPES.gruppe).steps).map(x=>`<li><span>${esc(x)}</span></li>`).join('')}</ol></div>`:`<div class="panel"><div class="eyebrow">${s&&s.cfg.art==='gehalt'?'Verhandlungsrunde':'Hauptfrage'}</div><div data-r="qprog"></div></div>`}
       ${fw?`<details class="panel cheat"${s.cfg.style==='coach'&&!(COARSE||window.innerWidth<900)?' open':''}><summary class="eyebrow">Spickzettel · ${esc(fw.name)}</summary><div class="cheat-in">${frameworkTreeHTML(fw)}</div></details>`:''}
@@ -4816,6 +5003,7 @@ function mountRun(kind){
   root.innerHTML=runHTML(kind,s);
   const R={root};$$('[data-r]',root).forEach(el=>R[el.dataset.r]=el);
   REFS[kind]=R;
+  if(s.cfg.video)setTimeout(()=>Cam.attach(kind),0);
   if(kind==='case'){
     R.meta.textContent=`${s.cfg.typeLabel} · ${s.cfg.industry} · ${LEVELS[s.cfg.level].label} · ${STYLES[s.cfg.style].label}`;
     R.title.textContent=s.book.titel;
@@ -4909,6 +5097,7 @@ function send(kind){
   const min=Math.floor(s.elapsed/60);
   const e={k:'cand',text,sent:`[Zeit: ${min} Min.] ${text}`,t:s.elapsed};
   if(R.speech&&R.speech.sec>2)e.sp=speechStats(text,R.speech.sec,s.cfg.lang==='en'?'en':'de');R.speech=null;
+  if(s.cfg.video&&Cam.recording()){const lastQ=[...s.log].reverse().find(x=>x.k==='int');Cam.stopAnswer(kind).then(({url,body})=>{if(body)e.body=body;if(url)(Clips[s.id]=Clips[s.id]||[]).push({url,q:lastQ?stripMarkers(lastQ.raw).slice(0,140):''});persistActive(true);});}
   s.log.push(e);R.input.value='';persistActive(true);
   R.log.insertAdjacentHTML('beforeend',entryHTML(e));
   toBottom(true);
@@ -4988,7 +5177,7 @@ function onAbort(kind){
   confirmBox(kind,kind==='case'?'Diesen Case verwerfen? Er wird nicht bewertet und nicht gespeichert.':kind==='ac'?'Diese Übung verwerfen? Sie wird nicht gespeichert.':'Dieses Gespräch verwerfen? Es wird nicht gespeichert.',[{label:'Verwerfen',cls:'danger',fn:()=>discard(kind)},{label:'Abbrechen'}]);
 }
 function discard(kind){
-  stopSpeech();micStop();
+  stopSpeech();micStop();Cam.stop();
   if(CTL[kind])CTL[kind].abort();
   ACTIVE[kind]=null;persistActive(true);
   showStage(kind,'setup');window.scrollTo({top:0});
@@ -4999,8 +5188,8 @@ function sessionToRecord(s,fb){
   return shrinkRecord({
     id:s.id,kind:s.kind,date:new Date().toISOString(),appId:settings.activeApp||'',
     title:s.kind==='case'?s.book.titel:s.kind==='ac'?s.cfg.typeLabel+' · '+s.cfg.firm:(s.cfg.artLabel||'Interview')+' · '+s.cfg.firm,
-    meta:s.kind==='case'?{type:s.cfg.typeLabel,industry:s.cfg.industry,level:s.cfg.level,lang:s.cfg.lang,style:s.cfg.style,oral:!!s.cfg.oral}:s.kind==='ac'?{type:s.cfg.type,firm:s.cfg.firm,oral:!!s.cfg.oral}:{art:s.cfg.art,n:s.cfg.n,lang:s.cfg.lang,firm:s.cfg.firm,oral:!!s.cfg.oral,ad:!!s.cfg.jobAd},
-    durationSec:s.elapsed||0,hints:s.hints||0,endedEarly:!s.ended,speech:speechSummary(s.log.filter(e=>e.sp).map(e=>e.sp)),
+    meta:s.kind==='case'?{type:s.cfg.typeLabel,industry:s.cfg.industry,level:s.cfg.level,lang:s.cfg.lang,style:s.cfg.style,oral:!!s.cfg.oral,video:!!s.cfg.video}:s.kind==='ac'?{type:s.cfg.type,firm:s.cfg.firm,oral:!!s.cfg.oral,video:!!s.cfg.video}:{art:s.cfg.art,n:s.cfg.n,lang:s.cfg.lang,firm:s.cfg.firm,oral:!!s.cfg.oral,video:!!s.cfg.video,ad:!!s.cfg.jobAd},
+    durationSec:s.elapsed||0,hints:s.hints||0,endedEarly:!s.ended,self:s.self||null,speech:speechSummary(s.log.filter(e=>e.sp).map(e=>e.sp)),body:Body.merge(s.log.filter(e=>e.body).map(e=>e.body)),
     score:fb.gesamt,verdict:fb.urteil,feedback:fb,
     transcript:logToTranscript(s.log),book:s.kind==='case'?s.book:null,notes:s.notes||'',followups:[],
     phaseTimes:s.kind==='case'?phaseTimes(s.log,s.elapsed):null
@@ -5008,7 +5197,8 @@ function sessionToRecord(s,fb){
 }
 async function runFeedback(kind){
   const s=ACTIVE[kind];if(!s)return;
-  stopSpeech();micStop();
+  stopSpeech();micStop();Cam.stop();
+  if(!s.self&&!s.selfSkip&&s.stage!=='feedback'){Self.ask(kind);return;}
   await AI.ready;if(AI.status!=='ready'){renderAIState();return;}
   s.stage='feedback';persistActive(true);
   const ctl=new AbortController();LOADCTL[kind]=ctl;
@@ -5035,9 +5225,9 @@ function bar5(p){
   return `<div class="bar5 ${lvl}" role="img" aria-label="${p==null?'keine Bewertung':p+' von 5 Punkten'}">${[1,2,3,4,5].map(i=>`<i class="${p!=null&&i<=p?'on':''}"></i>`).join('')}</div>`;
 }
 function metaLine(rec){
-  if(rec.kind==='case'&&rec.meta)return [rec.meta.type,rec.meta.style==='coach'?'Lernmodus':'',rec.meta.industry,(LEVELS[rec.meta.level]||{}).label,LANGS[rec.meta.lang],rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
-  if(rec.kind==='fit'&&rec.meta)return [(FIT_ARTS[rec.meta.art]||{}).label,`${rec.meta.n} ${rec.meta.art==='gehalt'?'Runden':'Hauptfragen'}`,LANGS[rec.meta.lang],rec.meta.ad?'mit Stellenanzeige':'',rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
-  if(rec.kind==='ac'&&rec.meta)return ['Assessment Center',(AC_TYPES[rec.meta.type]||{}).label,rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
+  if(rec.kind==='case'&&rec.meta)return [rec.meta.type,rec.meta.style==='coach'?'Lernmodus':'',rec.meta.industry,(LEVELS[rec.meta.level]||{}).label,LANGS[rec.meta.lang],rec.meta.video?'per Video':rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
+  if(rec.kind==='fit'&&rec.meta)return [(FIT_ARTS[rec.meta.art]||{}).label,`${rec.meta.n} ${rec.meta.art==='gehalt'?'Runden':'Hauptfragen'}`,LANGS[rec.meta.lang],rec.meta.ad?'mit Stellenanzeige':'',rec.meta.video?'per Video':rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
+  if(rec.kind==='ac'&&rec.meta)return ['Assessment Center',(AC_TYPES[rec.meta.type]||{}).label,rec.meta.video?'per Video':rec.meta.oral?'mündlich':''].filter(Boolean).join(' · ');
   if(rec.kind==='video'&&rec.meta)return [L('Video-Interview','Video interview'),`${rec.meta.n} ${L('Fragen','questions')}`,`${rec.meta.answer} ${L('Sek. je Antwort','sec per answer')}`,rec.meta.mode==='text'?L('schriftlich','written'):rec.meta.mode==='audio'?L('nur Ton','audio only'):L('mit Kamera','with camera'),rec.meta.self?L('Selbsteinschätzung','self-assessment'):''].filter(Boolean).join(' · ');
   if(rec.kind==='docs'&&rec.meta)return ['Unterlagen-Check',rec.meta.firm,rec.meta.ad?'mit Stellenanzeige':'ohne Stellenanzeige',rec.meta.cover?'mit Anschreiben':'ohne Anschreiben'].filter(Boolean).join(' · ');
   return '';
@@ -5057,12 +5247,14 @@ function scorecardHTML(rec){
     ${fb.zusammenfassung?`<p class="sc-sum">${esc(fb.zusammenfassung)}</p>`:''}
     <div class="crits">
       <div class="crit-legend"><span>Bewertungsbogen</span><span><i class="tk"></i>${rec.kind==='docs'?'Einladungsreif':'Zusage-Niveau'} ab 4 Punkten</span></div>
-      ${fb.kriterien.map(k=>`<div class="crit"><div class="cn">${esc(k.label)}</div>${bar5(k.punkte)}<div class="cs">${k.punkte==null?'–':k.punkte}</div><div class="cm">${esc(k.kommentar)}</div></div>`).join('')}
+      ${fb.kriterien.map(k=>`<div class="crit"><div class="cn">${esc(k.label)}</div>${bar5(k.punkte)}<div class="cs">${k.punkte==null?'–':k.punkte}${rec.self&&rec.self[k.id]!=null&&!fb.self?`<span class="selfv" title="${L('Deine Einschätzung','Your rating')}">${L('du','you')} ${rec.self[k.id]}</span>`:''}</div><div class="cm">${esc(k.kommentar)}</div></div>`).join('')}
     </div>
+    ${selfCompareHTML(rec)}
     ${rec.kind==='docs'?docsExtraHTML(fb):''}
     ${fb.antworten&&fb.antworten.length?`<section><h3 class="h3">${rec.kind==='ac'?'Phase für Phase':'Antwort für Antwort'}</h3><ol class="answers">${fb.antworten.map(a=>{const r=ANSWER_RATING[a.bewertung]||ANSWER_RATING.solide;return `<li><div class="ah"><span class="pill ${r.cls}">${r.txt}</span><b>${esc(a.frage)}</b></div>${a.kommentar?`<p>${esc(a.kommentar)}</p>`:''}${a.tipp?`<p class="tip"><b>Tipp:</b> ${esc(a.tipp)}</p>`:''}${a.geschichte?`<p class="tip"><b>Geschichte:</b> ${esc(a.geschichte)}</p>`:''}</li>`;}).join('')}</ol></section>`:''}
     ${rec.phaseTimes?phaseTimesHTML(rec.phaseTimes,rec.meta&&rec.meta.level):''}
     ${speechHTML(rec.speech)}
+    ${bodyHTML(rec.body)}
     <div class="two">
       <section><h3 class="h3">Das lief gut</h3>${fb.staerken.length?`<ul class="plus">${fb.staerken.map(x=>`<li><span>${esc(x)}</span></li>`).join('')}</ul>`:'<p class="muted">Keine Angaben.</p>'}</section>
       <section><h3 class="h3">Daran arbeiten</h3>${fb.verbesserungen.length?`<div class="improve">${fb.verbesserungen.map(x=>`<div class="it"><b>${esc(x.punkt)}</b>${x.statt?`<div class="q"><i>Statt</i>${esc(x.statt)}</div>`:''}${x.besser?`<div class="q better"><i>Besser</i>${esc(x.besser)}</div>`:''}</div>`).join('')}</div>`:'<p class="muted">Keine Angaben.</p>'}</section>
@@ -5108,6 +5300,7 @@ function showResult(kind,rec){
   const box=$('#'+kind+'-result');
   box.innerHTML=`<div class="result-wrap">
     ${scorecardHTML(rec)}
+    ${clipsHTML(rec.id)}
     ${kind!=='docs'?suggestHTML(rec.feedback,kind):''}
     ${upsellHTML()}
     <section class="ask" aria-labelledby="${kind}-ask-h">
@@ -5120,9 +5313,10 @@ function showResult(kind,rec){
     ${transcriptDetails(rec)}
     <div class="actions"><button type="button" class="btn primary" data-go="learn">${L('Weiter zu deinem nächsten Schritt','Continue to your next step')}</button><button type="button" class="btn" data-act="new">${kind==='case'?'Nächsten Case starten':kind==='ac'?'Nächste AC-Übung':kind==='docs'?'Unterlagen überarbeiten':'Neues Gespräch'}</button><button type="button" class="btn ghost" data-act="export">Bewertungsbogen herunterladen</button><span class="small muted" data-act="exnote"></span></div>
   </div>`;
-  box.querySelector('[data-act="export"]').onclick=()=>exportRecord(rec,box.querySelector('[data-act="exnote"]'));
-  box.querySelector('[data-act="new"]').onclick=()=>{showStage(kind,'setup');window.scrollTo({top:0});};
-  box.querySelector('[data-act="history"]').onclick=()=>{setTab('history');window.scrollTo({top:0});};
+  const on=(sel,fn)=>{const b=box.querySelector(sel);if(b)b.onclick=fn;};
+  on('[data-act="export"]',()=>exportRecord(rec,box.querySelector('[data-act="exnote"]')));
+  on('[data-act="new"]',()=>{showStage(kind,'setup');window.scrollTo({top:0});});
+  on('[data-act="history"]',()=>{setTab('history');window.scrollTo({top:0});});
   wireAsk(box,rec);
   RESULT[kind]=rec;
   showStage(kind,'result');
@@ -5789,7 +5983,7 @@ function refreshSetupUI(){
   radio('case-mode',settings.mode);radio('fit-mode',settings.mode);radio('fit-n',settings.fitN);radio('math-cat',settings.mathCat);radio('math-n',settings.mathN);radio('drill-level',settings.drillLevel);
   const ind=$('#case-industry');if(ind)ind.value=INDUSTRIES.includes(settings.industry)?settings.industry:'zufall';
   const cl=$('#case-lang');if(cl)cl.value=settings.lang;const fl=$('#fit-lang');if(fl)fl.value=settings.fitLang;
-  ['case','fit','ac'].forEach(k=>{const h=$('#'+k+'-oral-hint');if(h)h.textContent=settings.mode==='oral'?oralHintText():'';});
+  ['case','fit','ac'].forEach(k=>{const h=$('#'+k+'-oral-hint');if(h)h.textContent=modeHintText();});
   radio('ac-mode',settings.mode);
   syncFirmInputs();renderTypical();renderTrack();renderFitArt();renderAcTypes();renderPlanChip();renderPlan();
 }

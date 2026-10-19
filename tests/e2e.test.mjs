@@ -2,19 +2,28 @@
 // The page is opened straight from disk, exactly as GitHub Pages serves it.
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
-import {existsSync} from 'node:fs';
+import {existsSync,readFile} from 'node:fs';
+import {createServer} from 'node:http';
+import {extname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
 
-const PAGE=new URL('../index.html',import.meta.url).href;
+// Served over HTTP like GitHub Pages: ES modules and WebAssembly do not load from file://.
 const ROOT=fileURLToPath(new URL('..',import.meta.url));
+const TYPES={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.wasm':'application/wasm','.woff2':'font/woff2','.jpg':'image/jpeg'};
+const server=createServer((q,r)=>{const f=join(ROOT,decodeURIComponent(q.url.split('?')[0]));readFile(f,(e,d)=>{if(e){r.writeHead(404);r.end();return;}r.writeHead(200,{'content-type':TYPES[extname(f)]||'application/octet-stream'});r.end(d);});});
+let PAGE;
 // Local containers ship their own Chromium; in CI Playwright installs one.
 const exe=process.env.CHROMIUM_PATH||(existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':undefined);
 let browser;
 // Fake camera and microphone so the video interview can run headless.
 const args=['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'];
-before(async()=>{browser=await chromium.launch(exe?{executablePath:exe,args}:{args});});
-after(async()=>{await browser?.close();});
+before(async()=>{
+  await new Promise(res=>server.listen(0,'127.0.0.1',res));
+  PAGE=`http://127.0.0.1:${server.address().port}/index.html`;
+  browser=await chromium.launch(exe?{executablePath:exe,args}:{args});
+});
+after(async()=>{await browser?.close();server.close();});
 
 /* open the app with a given saved state; collects page errors and outside requests */
 async function open({settings={onboarded:true},history=[],width=1280,scheme='light'}={}){
@@ -29,7 +38,7 @@ async function open({settings={onboarded:true},history=[],width=1280,scheme='lig
   const page=await ctx.newPage();
   const errors=[],outside=[];
   page.on('pageerror',e=>errors.push(e.message));
-  page.on('request',r=>{const u=r.url();if(!u.startsWith('file:')&&!u.startsWith('data:'))outside.push(u);});
+  page.on('request',r=>{const u=r.url();if(!u.startsWith(new URL(PAGE).origin)&&!u.startsWith('data:')&&!u.startsWith('blob:'))outside.push(u);});
   await page.goto(PAGE);
   await page.waitForFunction(()=>document.querySelector('#home .nx-t'));
   return {page,ctx,errors,outside};
@@ -116,7 +125,8 @@ test('dark mode choice is remembered',async()=>{
   const {page,ctx}=await open();
   await page.click('#themesw');
   assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
-  await page.reload();
+  await page.reload({waitUntil:'load'});
+  await page.waitForFunction(()=>typeof Theme!=='undefined');
   assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
   await ctx.close();
 });
@@ -145,7 +155,7 @@ test('video interview: camera recording, review, self-rating, saved to history',
   await page.click('[data-v="start"]');
   for(let i=0;i<3;i++){
     await page.waitForSelector('[data-v="done"]');
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(1500);
     await page.click('[data-v="done"]');
   }
   await page.waitForSelector('.v-list');
@@ -185,5 +195,60 @@ test('progress shows the change per criterion',async()=>{
   assert.match(delta,/2,9 → 3,8 \+0,9/);
   assert.equal(await page.locator('.pgl .pt').count(),4);
   assert.deepEqual(errors,[]);
+  await ctx.close();
+});
+
+test('interview in video mode: camera, recording per answer, speech and body analysis, scorecard',async()=>{
+  const {page,ctx,errors}=await open({settings:app({profile:'BWL',mode:'video',fitArt:'klassisch',fitN:2})});
+  // Stand-ins for an own AI backend and for the browser's speech recognition.
+  await page.evaluate(()=>{
+    let n=0;
+    const sample=async(input,opts)=>{n++;const t=n<3?'Erzählen Sie von einem Projekt, auf das Sie stolz sind.':'Danke, das war es. [ENDE]';opts?.onText?.({text:t});return {text:t};};
+    sample.json=async()=>({gesamt:3.5,urteil:'knapp',zusammenfassung:'Solide.',kriterien:[{id:'struktur',punkte:4,kommentar:''},{id:'substanz',punkte:3,kommentar:''},{id:'motivation',punkte:4,kommentar:''},{id:'wirkung',punkte:3,kommentar:''}],staerken:['Klarer Einstieg'],verbesserungen:[{punkt:'Mehr Zahlen'}],antworten:[]});
+    AI.sample=sample;AI.status='ready';renderAIState();
+    SR.Ctor=class{start(){this.t=setTimeout(()=>this.onresult?.({resultIndex:0,results:[Object.assign([{transcript:'Also äh ich habe im Praktikum die Kostenrechnung aufgebaut und dabei zwei Tage gespart'}],{isFinal:true})]}),800);}stop(){clearTimeout(this.t);setTimeout(()=>this.onend?.(),10);}};
+  });
+  await page.evaluate(()=>runStep('start:fit:klassisch'));
+  await page.waitForFunction(()=>document.querySelector('#fit-run [data-r="camv"]')?.srcObject?.active);
+  for(let i=0;i<2;i++){
+    await page.waitForFunction(()=>!REFS.fit.send.disabled);
+    await page.click('#fit-run [data-r="mic"]');
+    await page.waitForTimeout(2600);
+    await page.click('#fit-run [data-r="mic"]');
+    await page.waitForTimeout(200);
+    await page.click('#fit-run [data-r="send"]');
+  }
+  await page.waitForFunction(()=>Object.values(Clips).flat().length===2);
+  await page.evaluate(()=>runFeedback('fit'));
+  await page.waitForSelector('#self-dlg:not([hidden])');
+  for(const [id,n] of [['struktur',5],['substanz',4],['motivation',4],['wirkung',4]])await page.click(`[data-sv="${id}:${n}"]`);
+  await page.click('[data-sf="go"]');
+  await page.waitForFunction(()=>!document.getElementById('fit-result').hidden,null,{timeout:10000});
+  const rec=await page.evaluate(()=>Store.list[0]);
+  assert.equal(rec.kind,'fit');
+  assert.equal(rec.meta.video,true);
+  assert.ok(rec.speech&&rec.speech.wpm>0,'speech analysis recorded');
+  assert.ok(rec.body&&rec.body.n>0,'body language sampled on the device');
+  assert.equal(await page.locator('#fit-result .clips video').count(),2);
+  assert.equal(await page.evaluate(()=>!Cam.stream),true,'camera is switched off after the session');
+  assert.deepEqual(rec.self,{struktur:5,substanz:4,motivation:4,wirkung:4},'self-assessment is stored');
+  assert.match(await page.locator('#fit-result .self-cmp').innerText(),/0,8 Punkte besser/);
+  assert.equal(await page.locator('#fit-result .selfv').count(),4);
+  assert.deepEqual(errors,[]);
+  await ctx.close();
+});
+
+test('body language maths: a frontal face counts as eye contact',async()=>{
+  const {page,ctx}=await open();
+  const out=await page.evaluate(()=>{
+    const pt=(x,y)=>({x,y,z:0});const f=[];f[1]=pt(.5,.5);f[234]=pt(.4,.5);f[454]=pt(.6,.5);f[10]=pt(.5,.3);f[152]=pt(.5,.72);
+    Body.lm={detectForVideo:()=>({faceLandmarks:[f],faceBlendshapes:[{categories:[{categoryName:'eyeLookOutLeft',score:.1}]}]})};
+    const acc={n:0,face:0,eye:0,cx:[],cy:[],size:[],light:[]};Body.acc=acc;
+    const v={readyState:4};for(let i=0;i<10;i++)Body.sample(v,acc);
+    return Body.stop();
+  });
+  assert.equal(out.face,100);
+  assert.equal(out.eye,100);
+  assert.equal(out.size,42);
   await ctx.close();
 });

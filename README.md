@@ -23,8 +23,11 @@ There is no shortage of application advice. What is missing is a place where you
 - **Assessment centre:** Group discussion, role plays, presentation and in-tray exercise, scored like real assessors would.
 - **Case interviews** for consulting and strategy roles.
 - **Document check:** Your CV against the job ad, which also produces the questions you are most likely to get.
+- **Written, spoken or video, for every interview:** choose how you answer before each interview, AC exercise or case. Spoken adds speech analysis; video also records each answer and measures eye contact and steadiness on your device. *Video mode is work in progress: Claude blocks camera access, so inside Claude it falls back to spoken.*
+- **Self-assessment first:** before the scorecard you rate yourself on the same criteria; the scorecard then shows your rating next to the AI's and where you over- or underestimate yourself.
 - **Video interview training:** Camera on, 30 seconds to think, then the answer is recorded against the clock, like the one-way video interviews many large employers use. Watch yourself back; recordings never leave the browser.
 - **Speech analysis:** For spoken answers, pace in words per minute and filler words ("um", "like", "äh", "halt" …), per answer and per session.
+- **Body language (estimate):** on-device face landmarks (MediaPipe, served from this repo) measure eye contact, how much the head moves, framing and light. No frame is stored or sent.
 - **Short drills and tests:** Self-introduction, questions for the interviewer, mental maths and number series.
 - **Cheat sheet** for the day of the interview.
 - **Progress:** six milestones on the ring around the animated orb, and a chart per practice type showing how each criterion changed from the first to the latest sessions.
@@ -64,11 +67,12 @@ content/
   i18n-en.js          German → English dictionary
 tests/                content checks (Node) and browser tests (Playwright)
 fonts/                self-hosted fonts, no third-party requests
+vendor/mediapipe/     on-device face landmarks for the body language analysis (Apache-2.0)
 ```
 
 ## Privacy
 
-- **Public demo (GitHub Pages):** no AI calls, no tracking. Video recordings stay in the browser. Speech recognition is the browser's own; in Chrome it sends audio to Google, so written answers are always offered.
+- **Public demo (GitHub Pages):** no AI calls, no tracking. Video recordings and body language analysis stay in the browser. Speech recognition is the browser's own; in Chrome it sends audio to Google, so written answers are always offered.
 - **Claude version:** AI features send the user's input to Claude (Anthropic) through the user's own Claude access. A pseudonymous usage count (days, exercise types, scores; no answers or documents) helps improve the prototype.
 
 ## Business model (concept)
