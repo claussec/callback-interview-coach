@@ -63,6 +63,20 @@ test('usage documents: anyone with the code writes their own, only the admin lis
 
 test('limits AI requests per IP',async()=>{
   // PER_IP_HOURLY is 5; earlier tests already used some, so the sixth request at the latest is refused.
-  const codes=[];for(let i=0;i<7;i++)codes.push((await post('/api/sample',{input:'Hallo'},CODE)).status);
+  const codes=[];for(let i=0;i<7;i++)codes.push((await post('/api/sample',{input:'Hallo'},{...CODE,'x-forwarded-for':'10.9.9.9'})).status);
   assert.ok(codes.includes(429),codes.join(','));
+});
+
+test('routes each task to its model and logs the cost per task',async()=>{
+  for(const task of ['turn','feedback','cv_profile'])assert.equal((await post('/api/sample',{input:'Hallo',task},{...CODE,'x-forwarded-for':'10.0.0.'+task.length})).status,200);
+  await new Promise(r=>setTimeout(r,200));
+  assert.equal((await get('/api/costs',CODE)).status,403);
+  const j=await (await get('/api/costs',ADMIN)).json();
+  const rows=Object.values(j.months)[0];
+  const model=t=>rows.find(r=>r.task===t)?.model;
+  assert.equal(model('turn'),'claude-sonnet-5-5');
+  assert.equal(model('feedback'),'claude-opus-5-5');
+  assert.equal(model('cv_profile'),'claude-haiku-5-5');
+  assert.ok(rows.every(r=>r.usd>0&&r.n>=1));
+  assert.equal(j.routes.feedback,'claude-opus-5-5');
 });

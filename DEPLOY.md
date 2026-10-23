@@ -71,8 +71,17 @@ systemctl status callback      # sollte "active (running)" zeigen
 
 - **Ausgabenlimit setzen:** In der Claude Console ein monatliches Limit festlegen. Das ist die wichtigste Absicherung.
 - **Grenzen im Server:** `DAILY_LIMIT` (alle Nutzer zusammen pro Tag) und `PER_IP_HOURLY` (pro Person und Stunde) in `/etc/callback.env`.
-- **Grobe Schätzung pro Nutzung** mit dem voreingestellten Modell `claude-opus-5-5`: ein ganzes Interview etwa 0,30–0,80 €, eine Kurzübung wenige Cent. Wie viel es tatsächlich ist, siehst du nach den ersten Tests in der Console unter *Usage*.
-- **Günstigeres Modell:** In `/etc/callback.env` `CLAUDE_MODEL=claude-sonnet-5-5` setzen und neu starten. Das kostet etwa die Hälfte; ob die Qualität reicht, solltest du an ein paar Interviews selbst prüfen.
+- **Welches Modell was macht:** Der Server wählt pro Aufgabe das passende Modell:
+
+  | Aufgabe | Modell | Warum |
+  |---|---|---|
+  | Bewertungsbogen, Unterlagen-Check, Video-Bewertung, Case erstellen | Claude Opus 5.5 | Hier zählt ein genaues Urteil; eine falsche Bewertung führt in die Irre |
+  | Interviewer-Antworten, Kurzübungen, Spickzettel, Fragen zum Feedback | Claude Sonnet 5.5 | schnell und natürlich im Gespräch, etwa halb so teuer |
+  | Lebenslauf lesen, Bereich erkennen, Tipps | Claude Haiku 5.5 | einfache Aufgaben, sehr günstig |
+
+  Grob geschätzt kostet ein komplettes Interview damit etwa 0,20–0,40 € statt 0,30–0,80 € mit Opus für alles. Gemessen ist das noch nicht.
+- **Echte Zahlen:** Deine Auswertung zeigt unter „KI-Kosten“ für jeden Monat, was jede Aufgabe mit welchem Modell kostet, und den Durchschnitt pro Gespräch (Schätzung mit Listenpreisen; die echte Rechnung steht in der Claude Console).
+- **Ändern:** in `/etc/callback.env` einzelne Aufgaben umstellen, z. B. `ROUTES={"turn":{"model":"claude-opus-5-5"}}`, oder mit `CLAUDE_MODEL=claude-opus-5-5` alles auf ein Modell setzen. Danach `systemctl restart callback`.
 
 ## Rechtliches (vor dem Teilen erledigen)
 

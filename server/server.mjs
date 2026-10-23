@@ -9,13 +9,14 @@
 //
 // Configuration (environment, see .env.example):
 //   ANTHROPIC_API_KEY   required unless MOCK_AI=1
-//   CLAUDE_MODEL        default claude-opus-5-5
+//   CLAUDE_MODEL        optional: one model for every task (overrides the routing table)
+//   ROUTES              optional JSON to change single tasks, e.g. {"turn":{"model":"claude-opus-5-5"}}
 //   ACCESS_CODE         optional: testers must enter this code before AI features work
 //   ADMIN_TOKEN         optional: unlocks the owner's usage view
 //   DAILY_LIMIT         max AI requests per day across all users (default 2000)
 //   PER_IP_HOURLY       max AI requests per IP and hour (default 120)
 //   PORT, HOST          default 8080, 127.0.0.1 (put Caddy or another proxy in front)
-//   DATA_DIR            where usage documents are stored (default ./data)
+//   DATA_DIR            where usage documents and the monthly cost log are stored (default ./data)
 //   MOCK_AI=1           canned answers, no API calls (local testing)
 
 import {createServer} from 'node:http';
@@ -29,7 +30,6 @@ import Anthropic from '@anthropic-ai/sdk';
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const env = process.env;
 const PORT = +(env.PORT || 8080), HOST = env.HOST || '127.0.0.1';
-const MODEL = env.CLAUDE_MODEL || 'claude-opus-5-5';
 const MOCK = env.MOCK_AI === '1';
 const DAILY_LIMIT = +(env.DAILY_LIMIT || 2000), PER_IP_HOURLY = +(env.PER_IP_HOURLY || 120);
 const DATA_DIR = resolve(env.DATA_DIR || join(ROOT, 'server', 'data'));
@@ -41,9 +41,69 @@ if (!MOCK && !env.ANTHROPIC_API_KEY) {
 }
 const client = MOCK ? null : new Anthropic();
 
-// The app asks for a tier; this server maps it to effort on one model rather than switching
-// models, so prompt caching keeps working across a session.
-const EFFORT = {quick: 'low', default: 'medium', complex: 'high'};
+/* ---------- which model does which job ----------
+   Every request from the app names its task. Scoring and judging, where a wrong verdict
+   misleads the user, go to the strongest model; the interviewer's turns, which must be quick
+   and natural, go to Sonnet (one model for a whole session, so prompt caching holds); small
+   extraction jobs go to Haiku. The cost log below shows what each choice costs in practice;
+   change single tasks with ROUTES or force one model with CLAUDE_MODEL. */
+const OPUS = 'claude-opus-5-5', SONNET = 'claude-sonnet-5-5', HAIKU = 'claude-haiku-5-5';
+const DEFAULT_ROUTES = {
+  feedback:   {model: OPUS,   effort: 'medium'}, // scorecard after an interview, AC or case
+  docs:       {model: OPUS,   effort: 'medium'}, // CV and cover letter against the job ad
+  video_eval: {model: OPUS,   effort: 'medium'}, // scorecard of a video interview
+  case_book:  {model: OPUS,   effort: 'medium'}, // writes a whole case with exhibits
+  turn:       {model: SONNET, effort: 'low'},    // interviewer, AC role players
+  followup:   {model: SONNET, effort: 'medium'}, // questions about the feedback
+  drill_task: {model: SONNET, effort: 'medium'},
+  drill_eval: {model: SONNET, effort: 'medium'},
+  story_eval: {model: SONNET, effort: 'medium'},
+  sheet:      {model: SONNET, effort: 'medium'}, // cheat sheet for the interview day
+  onboarding: {model: SONNET, effort: 'low'},    // first quick feedback
+  hint:       {model: HAIKU,  effort: 'low'},
+  cv_profile: {model: HAIKU,  effort: 'low'},    // CV text into a short profile
+  area:       {model: HAIKU,  effort: 'low'},    // field of work from the role title
+};
+const TIER = {quick: {model: SONNET, effort: 'low'}, default: {model: SONNET, effort: 'medium'}, complex: {model: OPUS, effort: 'high'}};
+let ROUTES = DEFAULT_ROUTES;
+try {if (env.ROUTES) ROUTES = Object.fromEntries(Object.entries({...DEFAULT_ROUTES, ...JSON.parse(env.ROUTES)}).map(([k, v]) => [k, {...DEFAULT_ROUTES[k], ...v}]));}
+catch {console.error('ROUTES is not valid JSON, using the defaults.');}
+function route(task, tier) {
+  const r = ROUTES[task] || TIER[tier] || TIER.default;
+  return env.CLAUDE_MODEL ? {...r, model: env.CLAUDE_MODEL} : r;
+}
+// Server-side refusal fallback exists for Opus and Sonnet; Haiku has none.
+const hasFallback = model => model !== HAIKU && !model.startsWith('claude-haiku');
+
+/* ---------- cost log: tokens and estimated dollars per task, per month ----------
+   USD per million tokens (input, output, cache read, cache write = 1.25 x input). Estimates
+   for the owner's overview; the Claude Console shows the bill. */
+const PRICE = {
+  [OPUS]:   {in: 4,    out: 20,  cr: 0.20, cw: 5},
+  [SONNET]: {in: 2,    out: 10,  cr: 0.20, cw: 2.5},
+  [HAIKU]:  {in: 0.10, out: 0.50, cr: 0.01, cw: 0.125},
+};
+let costQ = Promise.resolve();
+function logCost(task, model, u) {
+  const pr = PRICE[model];
+  const usd = pr ? ((u.input_tokens || 0) * pr.in + (u.output_tokens || 0) * pr.out + (u.cache_read_input_tokens || 0) * pr.cr + (u.cache_creation_input_tokens || 0) * pr.cw) / 1e6 : null;
+  const file = join(DATA_DIR, `costs-${new Date().toISOString().slice(0, 7)}.json`);
+  costQ = costQ.then(async () => {
+    let d = {};
+    try {d = JSON.parse(await readFile(file, 'utf8'));} catch {}
+    const k = `${task || 'other'}|${model}`, e = d[k] || {task: task || 'other', model, n: 0, in: 0, out: 0, cr: 0, cw: 0, usd: 0};
+    e.n++; e.in += u.input_tokens || 0; e.out += u.output_tokens || 0; e.cr += u.cache_read_input_tokens || 0; e.cw += u.cache_creation_input_tokens || 0;
+    if (usd != null) e.usd = Math.round((e.usd + usd) * 1e6) / 1e6;
+    d[k] = e;
+    await mkdir(DATA_DIR, {recursive: true});
+    await writeFile(file, JSON.stringify(d));
+  }).catch(e => console.error('cost log', e.message));
+}
+async function costs(res) {
+  const out = {};
+  try {for (const n of (await readdir(DATA_DIR)).filter(n => /^costs-\d{4}-\d{2}\.json$/.test(n)).sort().slice(-3)) out[n.slice(6, 13)] = Object.values(JSON.parse(await readFile(join(DATA_DIR, n), 'utf8')));} catch {}
+  json(res, 200, {months: out, routes: Object.fromEntries(Object.keys(ROUTES).map(k => [k, route(k).model]))});
+}
 
 /* ---------- small helpers ---------- */
 const sameSecret = (given, wanted) => {
@@ -52,7 +112,14 @@ const sameSecret = (given, wanted) => {
   const b = createHash('sha256').update(wanted).digest();
   return timingSafeEqual(a, b);
 };
-const clientIp = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+// Trust X-Forwarded-For only from the local reverse proxy (Caddy), which sets it; anyone else
+// could send the header to dodge the per-IP limit.
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+const clientIp = req => {
+  const peer = req.socket.remoteAddress || '';
+  if (!LOOPBACK.has(peer) || !req.headers['x-forwarded-for']) return peer;
+  return String(req.headers['x-forwarded-for']).split(',').at(-1).trim();
+};
 const json = (res, status, body) => {res.writeHead(status, {'content-type': 'application/json', 'cache-control': 'no-store'}); res.end(JSON.stringify(body));};
 async function readJson(req) {
   let size = 0; const chunks = [];
@@ -86,7 +153,8 @@ function toMessages(input) {
 async function sample(req, res) {
   const body = await readJson(req);
   const messages = toMessages(body.input);
-  const effort = EFFORT[body.modelTier] || 'medium';
+  const task = /^[a-z_]{1,24}$/.test(body.task || '') ? body.task : '';
+  const {model, effort} = route(task, body.modelTier);
   res.writeHead(200, {'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no'});
 
   if (MOCK) {
@@ -98,26 +166,27 @@ async function sample(req, res) {
           staerken: ['Klarer Einstieg'], verbesserungen: [{punkt: 'Mehr Zahlen'}], antworten: []})
       : 'Danke. Erzählen Sie von einem Projekt, auf das Sie stolz sind. (Testantwort vom Server, MOCK_AI)';
     for (const part of text.match(/.{1,24}/gs)) {res.write(part); await new Promise(r => setTimeout(r, 15));}
+    logCost(task, model, {input_tokens: Math.ceil(JSON.stringify(messages).length / 4), output_tokens: Math.ceil(text.length / 4)});
     return res.end();
   }
 
   const ctl = new AbortController();
   res.on('close', () => {if (!res.writableEnded) ctl.abort();});
   const stream = client.beta.messages.stream({
-    model: MODEL,
+    model,
     max_tokens: 16000,
     output_config: {effort},
     // Prompt caching: interviews resend the whole history every turn.
     cache_control: {type: 'ephemeral'},
     // On a safety decline, rerun on Anthropic's recommended fallback model instead of failing.
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
+    ...(hasFallback(model) ? {betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default'} : {}),
     messages,
   }, {signal: ctl.signal});
   for await (const ev of stream) {
     if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') res.write(ev.delta.text);
   }
   const final = await stream.finalMessage();
+  logCost(task, final.model || model, final.usage || {});
   if (final.stop_reason === 'refusal') res.write('\n\n[Diese Anfrage wurde abgelehnt. Formuliere sie bitte anders.]');
   res.end();
 }
@@ -184,6 +253,10 @@ createServer(async (req, res) => {
     const m = url.pathname.match(/^\/api\/usage\/([^/]+)$/);
     if (m && req.method === 'GET') return await usageGet(m[1], res);
     if (m && req.method === 'PUT') return await usagePut(m[1], req, res);
+    if (url.pathname === '/api/costs' && req.method === 'GET') {
+      if (!sameSecret(req.headers['x-admin-token'], env.ADMIN_TOKEN || '\0never')) return json(res, 403, {});
+      return await costs(res);
+    }
     if (url.pathname === '/api/usage' && req.method === 'GET') {
       if (!sameSecret(req.headers['x-admin-token'], env.ADMIN_TOKEN || '\0never')) return json(res, 403, {});
       return await usageList(res);
@@ -197,4 +270,4 @@ createServer(async (req, res) => {
     if (status === 413) {res.setHeader('connection', 'close'); res.on('finish', () => req.destroy());}
     json(res, status, {code: e instanceof Anthropic.RateLimitError ? 'rate_limited' : status === 502 ? 'upstream_error' : 'bad_request'});
   }
-}).listen(PORT, HOST, () => console.log(`Callback on http://${HOST}:${PORT} · model ${MOCK ? 'MOCK' : MODEL}${env.ACCESS_CODE ? ' · access code on' : ''}`));
+}).listen(PORT, HOST, () => console.log(`Callback on http://${HOST}:${PORT}${MOCK ? ' · MOCK' : ''} · models ${[...new Set(Object.keys(ROUTES).map(k => route(k).model))].join(', ')}${env.ACCESS_CODE ? ' · access code on' : ''}`));

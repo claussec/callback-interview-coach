@@ -51,7 +51,7 @@ flowchart LR
 | **Progress** | `progressData()` | Scores per session in order and each criterion's change from the first to the latest sessions, per practice type. |
 | **Tester feedback** | `Feedback` | Asks "was this helpful?" after the 1st, 4th and 10th exercise; answers go to the owner's usage view. |
 | **AI adapter** | `aiCall()`, `aiJson()` | The only place that talks to a model. Adds the interface language to every request. |
-| **Own server** | `Server`, `server/server.mjs` | Outside Claude the app calls `api/health`; if a server answers, `aiCall()` streams through `api/sample` and `Track` stores usage via `api/usage`. The server maps the app's quick/default/complex tiers to effort low/medium/high on one model (default `claude-opus-5-5`, so prompt caching holds across a session), enables server-side refusal fallback, checks an optional tester access code, limits requests per IP and per day, and serves only the public files. |
+| **Own server** | `Server`, `server/server.mjs` | Outside Claude the app calls `api/health`; if a server answers, `aiCall()` streams through `api/sample` and `Track` stores usage via `api/usage`. Every call names its task (`turn`, `feedback`, `cv_profile` …) and the server routes it: judging and scoring on Opus 5.5, the interviewer's turns and drills on Sonnet 5.5 (one model per session, so prompt caching holds), small extraction jobs on Haiku 5.5; it logs tokens and estimated cost per task and month for the owner's view, enables server-side refusal fallback where the model has it, checks an optional tester access code, limits requests per IP and per day, and serves only the public files. |
 | **State** | `settings`, `Store` | Settings and finished sessions live in `localStorage`. Inside Claude, preferences and history can sync to the artifact database. |
 | **i18n** | `trCore()`, `MutationObserver` | The interface is written in German. When English is on, an observer translates every new text node and attribute from `i18n-en.js`, so new screens are translated without extra code. Model output follows the interface language through the adapter. |
 | **Analytics** | `Track` | Inside Claude only: a pseudonymous count of active days, exercise types and scores plus tester feedback, visible to the owner, including the average improvement per person. Never answers or documents. The public demo records nothing. |
@@ -94,7 +94,7 @@ It shows up in the setup screen, the interviewer follows `rule`, and the `fach` 
 
 **Add a language.** Add a dictionary file like `i18n-en.js` and a flag button. The observer handles the rest.
 
-**Use another model.** Set `CLAUDE_MODEL` for the server. To use a different backend entirely, only `Server.sample()` (the browser side) and `server/server.mjs` change; nothing else talks to the model.
+**Use another model.** Change single tasks with `ROUTES` or force one model with `CLAUDE_MODEL`; the cost view shows the effect. To use a different backend entirely, only `Server.sample()` (the browser side) and `server/server.mjs` change; nothing else talks to the model.
 
 ## Tests
 

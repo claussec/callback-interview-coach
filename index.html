@@ -3013,7 +3013,7 @@ const Server={
   sample(){
     const call=async(input,opts={})=>{
       let r;
-      try{r=await fetch('api/sample',{method:'POST',headers:this.headers(),body:JSON.stringify({input,modelTier:opts.modelTier||'default'}),signal:opts.signal});}
+      try{r=await fetch('api/sample',{method:'POST',headers:this.headers(),body:JSON.stringify({input,modelTier:opts.modelTier||'default',task:opts.task||''}),signal:opts.signal});}
       catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'upstream_error'};}
       if(!r.ok)await this.fail(r);
       const rd=r.body.getReader(),dec=new TextDecoder();let text='';
@@ -3076,8 +3076,11 @@ function withLang(input){
   if(Array.isArray(input)&&input.length){const c=input.slice();c[0]=Object.assign({},c[0],{content:String(c[0].content)+AI_EN_NOTE});return c;}
   return input;
 }
-function aiCall(input,opts){return AI.sample(withLang(input),opts);}
-function aiJson(input,opts){return AI.sample.json(withLang(input),opts);}
+/* opts.task names the job (turn, feedback, cv_profile …); the own server picks the model for it,
+   the Claude runtime only receives the options it knows */
+const aiOpts=opts=>{if(!opts||AI.backend==='server')return opts;const {task,...o}=opts;return o;};
+function aiCall(input,opts){return AI.sample(withLang(input),aiOpts(opts));}
+function aiJson(input,opts){return AI.sample.json(withLang(input),aiOpts(opts));}
 const DENY=['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'];
 const ERR_COPY={
   rate_limited:'Zu viele Anfragen oder dein Nutzungslimit ist erreicht. Warte kurz und versuch es dann erneut.',
@@ -3276,6 +3279,28 @@ function fbSection(U){
     ${texts.length?`<ul class="fb-texts">${texts.map(x=>`<li><span class="pill neutral">${x.r}</span> ${esc(x.t)} <span class="small muted">· ${esc(trStr(KIND_LABEL[x.k]||x.k))}</span></li>`).join('')}</ul>`:''}
   </section>`;
 }
+/* AI costs per task (own server only): what each job costs with the model it runs on */
+const TASK_LABEL={feedback:'Bewertung nach Gespräch',docs:'Unterlagen-Check',video_eval:'Bewertung Video-Interview',case_book:'Case erstellen',turn:'Interviewer-Antworten',followup:'Fragen zum Feedback',drill_task:'Kurzübung erstellen',drill_eval:'Kurzübung bewerten',story_eval:'Geschichte bewerten',sheet:'Spickzettel',onboarding:'Einstiegs-Feedback',hint:'Tipps',cv_profile:'Lebenslauf lesen',area:'Bereich erkennen',other:'Sonstiges'};
+async function costSection(){
+  const el=$('#cost-sec');if(!el)return;
+  let j;try{const r=await fetch('api/costs',{headers:Server.headers(),cache:'no-store'});if(!r.ok)throw 0;j=await r.json();}catch(e){el.innerHTML='<p class="muted small">Die Kosten konnten nicht geladen werden.</p>';return;}
+  const months=Object.keys(j.months||{}).sort().reverse();
+  const usd=x=>x==null?'–':'$'+(x<0.1?x.toFixed(4):x.toFixed(2));
+  const short=m=>String(m).replace('claude-','').replace(/-(\d)-(\d)$/,' $1.$2');
+  if(!months.length){el.innerHTML=`<h2 class="h3">KI-Kosten</h2><p class="muted small" style="margin:0">Noch keine Anfragen. Modelle je Aufgabe: ${Object.entries(j.routes||{}).map(([k,m])=>`${esc(TASK_LABEL[k]||k)} → ${esc(short(m))}`).join(' · ')}</p>`;return;}
+  const rows=j.months[months[0]].sort((a,b)=>b.usd-a.usd);
+  const tot=rows.reduce((a,r)=>a+(r.usd||0),0);
+  const sum=t=>rows.filter(r=>t.includes(r.task)).reduce((a,r)=>a+(r.usd||0),0);
+  const fbN=rows.filter(r=>r.task==='feedback').reduce((a,r)=>a+r.n,0);
+  const perInterview=fbN?(sum(['turn','hint','feedback','case_book'])/fbN):null;
+  el.innerHTML=`<h2 class="h3">KI-Kosten · ${esc(months[0])}</h2>
+    <div class="tiles"><div class="tile"><div class="eyebrow">Diesen Monat</div><b>${usd(tot)}</b><span>geschätzt aus den Token-Zahlen</span></div>
+    <div class="tile"><div class="eyebrow">Ø pro Gespräch</div><b>${usd(perInterview)}</b><span>${fbN?`Interviewer, Tipps und Bewertung · ${fbN} Gespräche`:'noch kein abgeschlossenes Gespräch'}</span></div></div>
+    <div class="tablewrap"><table class="mtable"><thead><tr><th>Aufgabe</th><th>Modell</th><th class="num">Aufrufe</th><th class="num">Kosten</th><th class="num">Ø je Aufruf</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(TASK_LABEL[r.task]||r.task)}</td><td>${esc(short(r.model))}</td><td class="num">${r.n}</td><td class="num">${usd(r.usd)}</td><td class="num">${usd(r.usd/r.n)}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="small muted" style="margin:8px 0 0">Schätzung mit Listenpreisen, die echte Rechnung steht in der Claude Console. Welches Modell welche Aufgabe übernimmt, legt der Server fest (ROUTES in /etc/callback.env).</p>`;
+}
 async function renderAdmin(force){
   const body=$('#admin-body');if(!body)return;
   if(!Track.owner||!Track.db){body.innerHTML='<p class="muted">Dieser Bereich ist nur für die Person sichtbar, die Callback erstellt hat.</p>';return;}
@@ -3329,10 +3354,12 @@ async function renderAdmin(force){
   const table=U.length?`<section><h2 class="h3">Nutzer im Einzelnen</h2><div class="tablewrap"><table class="mtable utable"><thead><tr><th>Nutzer</th><th class="num">Erster Besuch</th><th class="num">Zuletzt</th><th class="num">Aktive Tage</th><th class="num">Interviews</th><th class="num">AC</th><th class="num">Cases</th><th class="num">Unterlagen</th><th class="num">Übungen</th><th class="num">Tests</th><th class="num">Ø Simulation</th>${PLANS?'<th>Pass</th><th>39 €?</th>':''}</tr></thead><tbody>${rows}</tbody></table></div></section>`:'';
   body.innerHTML=`<div style="display:flex;flex-direction:column;gap:26px">
     ${U.length?tiles+fbSection(U)+(PLANS?funnel:`<section><h2 class="h3">Nutzung</h2><div class="funnel">${fRow('Nutzer',U.length,U.length)}${fRow('Erstes Feedback erhalten',f1,U.length)}${fRow('Wiedergekommen',f2,U.length)}</div></section>`)+week+table:'<div class="empty"><h2 class="h3">Noch keine Nutzer erfasst</h2><p class="muted">Sobald jemand anderes Callback öffnet und dabei Daten speichern darf, erscheint er hier, zusammen mit dem Nachfrage-Trichter.</p></div>'}
-    <p class="privacy"><b>Wer erfasst wird:</b> Mitgezählt wird nur, wer in diesem Artefakt Daten speichern darf. Lädst du Tester per E-Mail ein, gib ihnen im Teilen-Menü eine Rolle mit Bearbeitungsrecht und schalte den öffentlichen Link aus. Wer nur über den öffentlichen Link kommt, wird nicht erfasst, und sein Verlauf bleibt in seinem Browser.</p>
+    ${AI.backend==='server'?'<section id="cost-sec"><p class="muted small">KI-Kosten werden geladen …</p></section>':''}
+    <p class="privacy"><b>Wer erfasst wird:</b> ${AI.backend==='server'?'Mitgezählt wird jede Person, die Callback auf diesem Server mit dem Zugangscode nutzt, unter einer zufälligen Kennung. Deine eigene Nutzung zählt nicht mit, solange du mit dem Admin-Link angemeldet bist.':`Mitgezählt wird nur, wer in diesem Artefakt Daten speichern darf. Lädst du Tester per E-Mail ein, gib ihnen im Teilen-Menü eine Rolle mit Bearbeitungsrecht und schalte den öffentlichen Link aus. Wer nur über den öffentlichen Link kommt, wird nicht erfasst, und sein Verlauf bleibt in seinem Browser.`}</p>
     <div class="actions"><button type="button" class="btn small" id="admin-refresh">Aktualisieren</button></div>
   </div>`;
   $('#admin-refresh').onclick=()=>renderAdmin(true);
+  if(AI.backend==='server')costSection();
 }
 
 function shrinkRecord(rec){
@@ -3504,7 +3531,7 @@ async function startCase(){
   showLoading('case','Der Interviewer bereitet den Case vor …',`${cfg.typeLabel} · ${cfg.industry} · ${LEVELS[cfg.level].label}. Das dauert meist 20 bis 60 Sekunden.`,()=>ctl.abort());
   try{
     const recent=Store.list.filter(r=>r.kind==='case').slice(0,8).map(r=>r.title);
-    const raw=await aiJson(bookPrompt(cfg,recent),{signal:ctl.signal,modelTier:'default',cache:false});
+    const raw=await aiJson(bookPrompt(cfg,recent),{task:'case_book',signal:ctl.signal,modelTier:'default',cache:false});
     const book=normBook(raw);
     ACTIVE.case={id:uid(),kind:'case',cfg,book,log:[{k:'int',raw:book.einstieg.trim()+'\n\n[[phase:klaerung]]',t:0}],notes:'',elapsed:0,phase:'klaerung',ended:false,hints:0,startedAt:new Date().toISOString(),stage:'run'};
     persistActive(true);
@@ -3592,7 +3619,7 @@ async function startDocs(){
   const ctl=new AbortController();LOADCTL.docs=ctl;
   showLoading('docs','Deine Unterlagen werden geprüft …','Lebenslauf, Anschreiben und Stellenanzeige werden abgeglichen. Das dauert meist 20 bis 40 Sekunden.',()=>ctl.abort());
   try{
-    const raw=await aiJson(docsPrompt(cfg),{signal:ctl.signal,modelTier:'default',cache:false});
+    const raw=await aiJson(docsPrompt(cfg),{task:'docs',signal:ctl.signal,modelTier:'default',cache:false});
     const fb=normDocsFb(raw);
     const rec={id:uid(),kind:'docs',appId:settings.activeApp||'',date:new Date().toISOString(),title:'Unterlagen · '+(cfg.position==='die Wunschstelle'?'allgemein':cfg.position),meta:{firm:cfg.firm,position:cfg.position,ad:!!cfg.jobAd,cover:!!cfg.cover},score:fb.gesamt,verdict:fb.urteil,feedback:fb,input:`Stelle: ${cfg.position} bei ${cfg.firm}\n\nLEBENSLAUF\n${cfg.profile.slice(0,3000)}\n\nSTELLENANZEIGE\n${cfg.jobAd.slice(0,2500)||'(keine)'}\n\nANSCHREIBEN\n${cfg.cover.slice(0,3000)||'(keines)'}`,followups:[],transcript:[]};
     await Store.save(rec);
@@ -3887,7 +3914,7 @@ async function makeSheet(){
   SHEET.busy=true;SHEET.err='';renderSheetDlg();
   const ctl=new AbortController();SHEET.ctl=ctl;
   try{
-    const raw=await aiJson(sheetPrompt(a),{signal:ctl.signal,modelTier:'default',cache:false});
+    const raw=await aiJson(sheetPrompt(a),{task:'sheet',signal:ctl.signal,modelTier:'default',cache:false});
     a.sheet=normSheet(raw);saveSettings(true);renderApps();
   }catch(e){if(!(e&&e.code==='cancelled'))SHEET.err=errText(e);}
   finally{SHEET.busy=false;SHEET.ctl=null;if(!$('#sheet-dlg').hidden)renderSheetDlg();}
@@ -3989,7 +4016,7 @@ async function onbClick(e){
     if(AI.status!=='ready'){ONB.err=L('Feedback braucht Claude. Öffne die Seite in Claude oder überspring diesen Schritt.','Feedback needs Claude. Open this page in Claude or skip this step.');renderOnb();return;}
     ONB.busy=true;ONB.err='';renderOnb();
     try{
-      const raw=await aiJson(onbPrompt(ans),{modelTier:'quick',cache:false});
+      const raw=await aiJson(onbPrompt(ans),{task:'onboarding',modelTier:'quick',cache:false});
       const p=clampScore(raw&&raw.punkte);if(p==null)throw {code:'bad_shape'};
       const arr=x=>Array.isArray(x)?x.map(v=>String(v||'')).filter(Boolean):[];
       ONB.fb={punkte:Math.round(p),fazit:String(raw.fazit||''),gut:arr(raw.gut).slice(0,2),besser:arr(raw.besser).slice(0,3)};
@@ -4033,7 +4060,7 @@ STELLE: ${a.position||''}
 UNTERNEHMEN: ${a.firm||''}
 ANZEIGE (Auszug): ${String(a.jobAd||'').slice(0,1500)}
 
-Antworte nur mit JSON: {"id": "…", "name": "kurzer Bereichsname, nur bei custom"}`,{modelTier:'quick',cache:true});
+Antworte nur mit JSON: {"id": "…", "name": "kurzer Bereichsname, nur bei custom"}`,{task:'area',modelTier:'quick',cache:true});
     if(a.areaAuto===false)return;
     const id=String(r&&r.id||'');
     if(areaDef(id)){a.area=id;}else if(id==='custom'&&r.name){a.area='custom';a.areaCustom=String(r.name).slice(0,40);}
@@ -4555,7 +4582,7 @@ ${s.items.map((x,i)=>`FRAGE ${i+1}: ${x.q}\nDAUER: ${x.sec} s${x.sp&&x.sp.wpm?`,
 Bewerte die Kriterien ${crit} jeweils von 1 bis 5 (4 = würde in die nächste Runde kommen) mit einem Satz Begründung. Sei ehrlich und konkret, zitiere wenn möglich aus den Antworten.
 Antworte nur mit JSON: {"gesamt": Zahl, "urteil": "weiter"|"knapp"|"nein", "zusammenfassung": "2 Sätze", "kriterien": [{"id": "...", "punkte": 1-5, "kommentar": "..."}], "staerken": ["...", "..."], "verbesserungen": [{"punkt": "...", "statt": "Zitat aus einer Antwort", "besser": "stärkere Formulierung"}]}`;
     try{
-      const raw=await aiJson(prompt,{modelTier:'default',cache:false});
+      const raw=await aiJson(prompt,{task:'video_eval',modelTier:'default',cache:false});
       const kr=VIDEO_CRIT.map(([id,label])=>{const k=(raw.kriterien||[]).find(x=>x&&x.id===id)||{};const p=Math.round(+k.punkte);return {id,label,punkte:p>=1&&p<=5?p:null,kommentar:String(k.kommentar||'')};});
       const valid=kr.filter(k=>k.punkte!=null);
       const g=+raw.gesamt>0?Math.round(+raw.gesamt*10)/10:valid.length?Math.round(valid.reduce((a,k)=>a+k.punkte,0)/valid.length*10)/10:null;
@@ -5216,7 +5243,7 @@ async function interviewerTurn(kind){
   toBottom(true);
   const ctl=new AbortController();CTL[kind]=ctl;
   try{
-    const res=await aiCall(buildTurns(kind,s),{signal:ctl.signal,cache:false,modelTier:s.cfg.speed==='thorough'?'default':'quick',onText:({text})=>{const nb=nearBottom();body.innerHTML=md(stripMarkers(text));if(nb)toBottom(false);}});
+    const res=await aiCall(buildTurns(kind,s),{task:'turn',signal:ctl.signal,cache:false,modelTier:s.cfg.speed==='thorough'?'default':'quick',onText:({text})=>{const nb=nearBottom();body.innerHTML=md(stripMarkers(text));if(nb)toBottom(false);}});
     const text=res.text;
     if(ACTIVE[kind]!==s)return;
     s.log.push({k:'int',raw:text,t:s.elapsed});
@@ -5251,7 +5278,7 @@ async function getHint(kind){
   const li=R.log.lastElementChild,body=li.querySelector('.body');toBottom(true);
   const ctl=new AbortController();CTL[kind]=ctl;
   try{
-    const res=await aiCall(hintPrompt(kind,s),{signal:ctl.signal,cache:false,modelTier:'quick',onText:({text})=>{body.textContent=text;}});
+    const res=await aiCall(hintPrompt(kind,s),{task:'hint',signal:ctl.signal,cache:false,modelTier:'quick',onText:({text})=>{body.textContent=text;}});
     if(ACTIVE[kind]!==s)return;
     const e={k:'hint',text:res.text.trim()};s.log.push(e);s.hints=(s.hints||0)+1;body.textContent=e.text;persistActive(true);
   }catch(e){
@@ -5307,7 +5334,7 @@ async function runFeedback(kind){
   const ctl=new AbortController();LOADCTL[kind]=ctl;
   showLoading(kind,'Dein Feedback wird erstellt …',kind==='ac'?'Die Beobachter gehen deine Beiträge durch und füllen den Bewertungsbogen aus. Das dauert meist 20 bis 60 Sekunden.':'Der Interviewer geht dein Transkript durch und füllt den Bewertungsbogen aus. Das dauert meist 20 bis 60 Sekunden.',()=>ctl.abort());
   try{
-    const raw=await aiJson(feedbackPrompt(kind,s),{signal:ctl.signal,modelTier:'default',cache:false});
+    const raw=await aiJson(feedbackPrompt(kind,s),{task:'feedback',signal:ctl.signal,modelTier:'default',cache:false});
     const fb=normFeedback(raw,kind,s.cfg);
     const rec=sessionToRecord(s,fb);
     await Store.save(rec);
@@ -5459,7 +5486,7 @@ function wireAsk(box,rec){
     list.insertAdjacentHTML('beforeend',`<div class="qa-item"><div class="qa-q">${esc(q)}</div><div class="qa-a md"><span class="thinking"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Coach denkt nach …</span></div></div>`);
     const item=list.lastElementChild,ans=item.querySelector('.qa-a');
     try{
-      const res=await aiCall(followupPrompt(rec,q),{cache:false,modelTier:'default',onText:({text})=>{ans.innerHTML=md(text);}});
+      const res=await aiCall(followupPrompt(rec,q),{task:'followup',cache:false,modelTier:'default',onText:({text})=>{ans.innerHTML=md(text);}});
       ans.innerHTML=md(res.text);input.value='';
       rec.followups=[...(rec.followups||[]),{q,a:res.text}];
       Store.save(rec);
@@ -5720,7 +5747,7 @@ async function handleCvFile(file){
   if(AI.status==='ready'){
     CV.state='writing';renderProfileBox();
     try{
-      const res=await aiCall(profilePrompt(stripContacts(raw)),{cache:false,modelTier:'quick',onText:({text})=>{const el=$('[data-cv="stream"]');if(el)el.textContent=text;}});
+      const res=await aiCall(profilePrompt(stripContacts(raw)),{task:'cv_profile',cache:false,modelTier:'quick',onText:({text})=>{const el=$('[data-cv="stream"]');if(el)el.textContent=text;}});
       profile=res.text.trim();source='ai';
     }catch(e){info=errText(e)+' ';}
   }
@@ -6065,7 +6092,7 @@ function initStories(){
     await AI.ready;if(AI.status!=='ready'){renderAIState();st.textContent='Claude ist gerade nicht erreichbar.';return;}
     b.disabled=true;st.innerHTML='<span class="thinking"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Der Coach liest …</span>';
     try{
-      const raw=await aiJson(storyEvalPrompt(s,{firm:(settings.firm||'').trim()||'dem Wunschunternehmen'}),{modelTier:'default',cache:false});
+      const raw=await aiJson(storyEvalPrompt(s,{firm:(settings.firm||'').trim()||'dem Wunschunternehmen'}),{task:'story_eval',modelTier:'default',cache:false});
       s.fb=normStoryFb(raw);s.fbDate=new Date().toISOString();touchStories();
       card.querySelector('[data-sfb]').innerHTML=storyFbHTML(s.fb);st.textContent='';b.textContent='Neu bewerten';
     }catch(err){st.textContent=errText(err);}
@@ -6140,7 +6167,7 @@ async function startDrill(type){
   window.scrollTo({top:0});
   try{
     const recent=Store.list.filter(r=>r.kind==='drill'&&r.drill===type).slice(0,6).map(r=>r.title).filter(Boolean);
-    const raw=await aiJson(drillGenPrompt(type,cfg,recent),{signal:ctl.signal,modelTier:'default',cache:false});
+    const raw=await aiJson(drillGenPrompt(type,cfg,recent),{task:'drill_task',signal:ctl.signal,modelTier:'default',cache:false});
     if(drillCtl!==ctl)return;
     DRILL={id:uid(),type,cfg,task:normDrillTask(raw),answer:'',stage:'answer',fb:null,revealed:false};
     saveDrill();renderDrill();
@@ -6198,7 +6225,7 @@ async function submitDrill(){
   if(AI.status!=='ready'){drillBusy=false;setDrillBusy(false);renderAIState();st.className='status err';st.textContent='Claude ist gerade nicht erreichbar.';return;}
   const ctl=new AbortController();drillCtl=ctl;
   try{
-    const raw=await aiJson(drillEvalPrompt(D.type,D.task,answer,D.cfg.level,D.revealed),{signal:ctl.signal,modelTier:'default',cache:false});
+    const raw=await aiJson(drillEvalPrompt(D.type,D.task,answer,D.cfg.level,D.revealed),{task:'drill_eval',signal:ctl.signal,modelTier:'default',cache:false});
     const fb=normDrillFb(raw);
     if(DRILL!==D)return;
     D.fb=fb;D.stage='result';saveDrill();
