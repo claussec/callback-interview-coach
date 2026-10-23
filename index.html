@@ -263,7 +263,7 @@ ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;
 .run-side{display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}
 @media (max-width:900px){
   .run-grid{grid-template-columns:minmax(0,1fr);gap:16px}
-  .run-side{order:-1;position:static;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .run-side{order:1;position:static;display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .run-side .notes,.run-side .abort-wrap,.run-side .star,.run-side .cheat,.run-side .voice{grid-column:1/-1}
   .timer{font-size:26px!important}
 }
@@ -1313,7 +1313,7 @@ input[type="date"]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3
 .v-sr button,.v-time button{appearance:none;font:inherit;font-size:14px;min-width:38px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer}
 @media (max-width:760px){.v-stage{grid-template-columns:1fr}.v-time{display:flex;margin:6px 0 0}}
 /* tester feedback card */
-.fbq{position:fixed;z-index:55;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(440px,calc(100vw - 32px));animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.fbq{position:fixed;z-index:55;left:16px;right:16px;margin-inline:auto;bottom:max(18px,env(safe-area-inset-bottom));max-width:440px;animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 .fbq-in{display:flex;flex-direction:column;gap:12px;padding:18px 20px;border-radius:22px;background:var(--sheet);box-shadow:0 20px 60px -12px rgba(0,0,0,.35);border:1px solid var(--line)}
 .fbq-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .fbq-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -1592,7 +1592,7 @@ body{background:transparent}
         <div class="actions"><button type="button" class="btn primary" id="case-start">Case starten</button><span class="muted small" id="case-tip"></span><span class="note-err" id="case-note" role="alert"></span></div>
       </div>
       <aside class="setup-side">
-        <div class="panel newbie"><b>Neu bei Cases?</b><span>Im Bereich Start findest du die Grundlagen, einen kommentierten Beispiel-Case und kurze Übungen. Für deinen ersten ganzen Case wähle den Lernmodus.</span><button type="button" class="linkbtn" data-go="learn" style="align-self:flex-start">Zum Lernbereich</button></div>
+        <div class="panel newbie"><b>Neu bei Cases?</b><span>In den Lektionen findest du die Grundlagen und einen kommentierten Beispiel-Case. Für deinen ersten ganzen Case wähle den Lernmodus.</span><button type="button" class="linkbtn" data-lesson="ablauf" style="align-self:flex-start">Zum Lernbereich</button></div>
         <div>
           <h2 class="h3">So läuft ein Case</h2>
           <ol class="steps">
@@ -1742,6 +1742,7 @@ body{background:transparent}
   <div class="pw-back" id="goal-dlg" role="dialog" aria-modal="true" aria-labelledby="goal-title" hidden><div class="pw goal" id="goal-box"></div></div>
   <div class="pw-back" id="sheet-dlg" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden><div class="pw sheet" id="sheet-box"></div></div>
   <div class="pw-back onb-back" id="onb" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden><div class="pw onb" id="onb-box"></div></div>
+  <div class="sr" id="sr-live" aria-live="polite"></div>
   <div class="fbq" id="fbq" hidden></div>
   <div class="pw-back" id="self-dlg" role="dialog" aria-modal="true" aria-labelledby="self-title" hidden><div class="pw" id="self-box"></div></div>
   <div class="pw-back" id="video-dlg" role="dialog" aria-modal="true" aria-labelledby="video-title" hidden><div class="pw video" id="video-box"></div></div>
@@ -1952,7 +1953,7 @@ function parseNum(s){
     else if((t.match(/,/g)||[]).length===1)t=t.replace(',','.');
     else return NaN;
   }else if(hasDot){
-    if(/^[-+]?\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');
+    if(/^[-+]?\d{1,3}(\.\d{3}){2,}$/.test(t)||(!isEn()&&/^[-+]?\d{1,3}(\.\d{3})+$/.test(t)))t=t.replace(/\./g,'');
     else if((t.match(/\./g)||[]).length>1)return NaN;
   }
   if(!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(t))return NaN;
@@ -2996,7 +2997,7 @@ const Server={
   headers(){const h={'content-type':'application/json'};const c=this.code(),a=this.admin();if(c)h['x-access-code']=c;if(a)h['x-admin-token']=a;return h;},
   async detect(){
     try{const m=/[#&]admin=([^&]+)/.exec(location.hash);if(m){localStorage.setItem('cb.admin',decodeURIComponent(m[1]));history.replaceState(null,'',location.pathname+location.search);}}catch(e){}
-    if(location.protocol==='file:')return false;
+    if(location.protocol==='file:'||/\.github\.io$/.test(location.hostname))return false;
     try{
       const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),2500);
       const r=await fetch('api/health',{cache:'no-store',signal:ctl.signal});clearTimeout(t);
@@ -3064,6 +3065,8 @@ AI.ready=(async()=>{
     else{const s=await window.claude.use('sample');AI.sample=s;AI.status=s?'ready':'unavailable';}
   }catch(e){AI.status='unavailable';}
   renderAIState();
+  // the home screen's next step depends on whether AI is available
+  if(typeof renderHome==='function')try{renderHome();}catch(e){}
 })();
 /* the interface language steers every model answer the user reads; JSON keys and enum values stay as specified */
 const AI_EN_NOTE='\n\nLANGUAGE OF THE APP: The user interface is set to English. Write every text the user reads (feedback, comments, tips, explanations, profiles, exercises, sample answers, JSON string values) in English. If an interview or exercise language is stated above, the conversation itself follows that language. Keep JSON keys, criterion ids and enum values (weiter, knapp, nein, stark, solide, schwach, balken, linie, tabelle, diagramm) exactly as specified, and keep markers like [[phase:…]] unchanged.';
@@ -3349,7 +3352,7 @@ let currentTab='case';
 
 /* ---------------- tabs ---------------- */
 function setTab(t){
-  if(t!==currentTab){stopSpeech();micStop();}
+  if(t!==currentTab){stopSpeech();micStop();if(typeof Cam!=='undefined'&&Cam.stream&&Cam.kind===currentTab)Cam.stop();}
   currentTab=t;
   $$('.tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
   ['learn','library','apps','docs','fit','ac','case','math','history','admin'].forEach(v=>{$('#view-'+v).hidden=v!==t;});
@@ -3404,7 +3407,7 @@ function initSetup(){
   ind.innerHTML='<option value="zufall">Zufall</option>'+INDUSTRIES.map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join('');
   ind.value=INDUSTRIES.includes(settings.industry)?settings.industry:'zufall';
   ind.onchange=()=>{settings.industry=ind.value;saveSettings();};
-  const lang=$('#case-lang');lang.value=settings.lang;lang.onchange=()=>{settings.lang=lang.value;saveSettings();};
+  const lang=$('#case-lang');lang.value=settings.lang;lang.onchange=()=>{settings.lang=lang.value;settings.practiceLangSet=true;saveSettings();};
   radioSeg($('#case-level'),'case-level',Object.entries(LEVELS).map(([id,v])=>({id,label:v.label,short:v.short})),settings.level,v=>{settings.level=v;saveSettings();});
   radioSeg($('#case-style'),'case-style',Object.entries(STYLES).map(([id,v])=>({id,label:v.label,short:v.short})),settings.style,v=>{settings.style=v;saveSettings();});
   radioSeg($('#case-speed'),'case-speed',Object.entries(SPEEDS).map(([id,v])=>({id,label:v.label,short:v.short})),settings.speed,v=>{settings.speed=v;saveSettings();});
@@ -3425,7 +3428,7 @@ function initSetup(){
   $('#case-start').onclick=startCase;
 
   radioSeg($('#fit-n'),'fit-n',[{id:3,label:'3 Fragen',short:'ca. 15 Minuten'},{id:5,label:'5 Fragen',short:'ca. 25 Minuten'}],settings.fitN,v=>{settings.fitN=+v;saveSettings();});
-  const fl=$('#fit-lang');fl.value=settings.fitLang;fl.onchange=()=>{settings.fitLang=fl.value;saveSettings();};
+  const fl=$('#fit-lang');fl.value=settings.fitLang;fl.onchange=()=>{settings.fitLang=fl.value;settings.practiceLangSet=true;saveSettings();};
   initCv();
   initStories();
   $('#fit-start').onclick=startFit;
@@ -3440,7 +3443,7 @@ function initSetup(){
 function renderTypical(){
   const f=esc((settings.firm||'').trim()||'uns');
   const Q={
-    klassisch:['Erzählen Sie etwas über sich.',`Warum möchten Sie bei ${f} arbeiten?`,'Was sind Ihre größten Stärken, und woran arbeiten Sie noch?','Wo sehen Sie sich in fünf Jahren?','Welche Fragen haben Sie an uns?'],
+    klassisch:['Erzählen Sie etwas über sich.',L(`Warum möchten Sie bei ${f} arbeiten?`,`Why do you want to work at ${f}?`),'Was sind Ihre größten Stärken, und woran arbeiten Sie noch?','Wo sehen Sie sich in fünf Jahren?','Welche Fragen haben Sie an uns?'],
     verhalten:['Erzählen Sie von einem Konflikt im Team und wie Sie ihn gelöst haben.','Wann sind Sie einmal gescheitert, und was haben Sie daraus gelernt?','Beschreiben Sie eine Situation, in der Sie jemanden ohne Weisungsbefugnis überzeugt haben.','Wann haben Sie unter großem Zeitdruck gearbeitet?'],
     telefon:['Stellen Sie sich bitte kurz vor.','Was reizt Sie an der Stelle?','Ab wann wären Sie verfügbar?','Wie sieht Ihre Gehaltsvorstellung aus?'],
     fach:['Wie würden Sie bei dieser Aufgabe aus der Stellenanzeige vorgehen?','Welche Tools oder Methoden nutzen Sie dafür, und warum?','Erklären Sie uns ein Fachthema so, dass es ein Laie versteht.','Was würden Sie in den ersten 90 Tagen tun?'],
@@ -3458,7 +3461,7 @@ function renderFitArt(){
 function renderCvMini(){
   const el=$('#cv-mini');if(!el)return;
   const has=!!String(settings.profile||'').trim(),ad=!!String(settings.jobAd||'').trim();
-  el.innerHTML=`<span class="${has?'ok':'miss'}">${has?'✓ Lebenslauf: '+esc(settings.profileFile||'Profil hinterlegt'):'Kein Lebenslauf'}</span><span class="${ad?'ok':'miss'}">${ad?'✓ Stellenanzeige hinterlegt':'Keine Stellenanzeige'}</span><button type="button" class="linkbtn" data-go="docs">${has?'Unterlagen ändern':'Lebenslauf hochladen'}</button>`;
+  el.innerHTML=`<span class="${has?'ok':'miss'}">${has?'✓ '+L('Lebenslauf','CV')+': '+esc(settings.profileFile||L('Profil hinterlegt','profile saved')):L('Kein Lebenslauf','No CV')}</span><span class="${ad?'ok':'miss'}">${ad?'✓ Stellenanzeige hinterlegt':'Keine Stellenanzeige'}</span><button type="button" class="linkbtn" data-go="docs">${has?'Unterlagen ändern':'Lebenslauf hochladen'}</button>`;
 }
 function exampleCard(){
   const ex=[['Problemverständnis & Klärung',4],['Struktur',3],['Analyse & Insights',4],['Rechnen',2],['Empfehlung',3],['Kommunikation & Führung',4]];
@@ -3601,7 +3604,7 @@ async function startDocs(){
   }finally{LOADCTL.docs=null;}
 }
 function docsExtraHTML(fb){
-  const kw=(fb.kwDa&&fb.kwDa.length)||(fb.kwFehlen&&fb.kwFehlen.length)?`<section><h3 class="h3">Schlüsselbegriffe aus der Stellenanzeige</h3><div class="kw">${(fb.kwDa||[]).map(k=>`<span class="kwt have">✓ ${esc(k)}</span>`).join('')}${(fb.kwFehlen||[]).map(k=>`<span class="kwt miss">fehlt: ${esc(k)}</span>`).join('')}</div><p class="small muted" style="margin:8px 0 0">Ergänze fehlende Begriffe nur, wenn sie auf dich zutreffen, am besten mit einem Beleg.</p></section>`:'';
+  const kw=(fb.kwDa&&fb.kwDa.length)||(fb.kwFehlen&&fb.kwFehlen.length)?`<section><h3 class="h3">Schlüsselbegriffe aus der Stellenanzeige</h3><div class="kw">${(fb.kwDa||[]).map(k=>`<span class="kwt have">✓ ${esc(k)}</span>`).join('')}${(fb.kwFehlen||[]).map(k=>`<span class="kwt miss">${L('fehlt','missing')}: ${esc(k)}</span>`).join('')}</div><p class="small muted" style="margin:8px 0 0">Ergänze fehlende Begriffe nur, wenn sie auf dich zutreffen, am besten mit einem Beleg.</p></section>`:'';
   const qs=fb.fragen&&fb.fragen.length?`<section class="panel suggest"><div><div class="eyebrow">Diese Fragen kommen wahrscheinlich</div><ol class="qlist">${fb.fragen.map(q=>`<li>${esc(q)}</li>`).join('')}</ol></div><button type="button" class="btn primary" data-docsq>Im Vorstellungsgespräch üben</button></section>`:'';
   return kw+qs;
 }
@@ -3775,7 +3778,7 @@ function initApps(){
     else if(act==='sheet')openSheet(id);
     else if(act==='del'){b.hidden=true;row.querySelector('[data-delc]').hidden=false;}
     else if(act==='delno'){row.querySelector('[data-delc]').hidden=true;row.querySelector('[data-a="del"]').hidden=false;}
-    else if(act==='delyes'){settings.apps=settings.apps.filter(x=>x.id!==id);if(settings.activeApp===id){settings.activeApp='';}EDIT_APP=null;saveSettings(true);renderApps();renderAppBar();}
+    else if(act==='delyes'){settings.apps=settings.apps.filter(x=>x.id!==id);if(settings.activeApp===id){settings.activeApp='';if(!settings.apps.length){settings.firm='';settings.position='';settings.jobAd='';settings.interviewDate='';}}EDIT_APP=null;saveSettings(true);renderApps();renderAppBar();}
   });
   /* the sheet dialog */
   const dlg=$('#sheet-dlg');
@@ -3908,7 +3911,7 @@ function maybeOnboard(){
   openOnb();
 }
 const BRAND_MARK='<svg class="cb-mark" viewBox="0 0 24 24" aria-hidden="true"><g class="cb-spin"><circle class="cb-arc" cx="12" cy="12" r="8.5" transform="rotate(45 12 12)"/><circle class="cb-dot" cx="19.6" cy="12" r="2.5"/></g></svg>';
-function openOnb(){ONB.step=1;ONB.fb=null;ONB.err='';$('#onb').hidden=false;renderOnb();}
+function openOnb(){ONB.step=1;ONB.fb=null;ONB.err='';$('#onb').hidden=false;renderOnb();const f=$('#onb-box [data-track],#onb-box button');if(f)f.focus();}
 function finishOnb(goFit){
   const firm=String(settings.firm||'').trim();
   if(firm&&!(settings.apps||[]).length){const a={id:uid(),firm,position:String(settings.position||'').trim(),stage:'beworben',date:'',jobAd:'',notes:'',created:new Date().toISOString()};refreshAutoArea(a);settings.apps.push(a);settings.activeApp=a.id;}
@@ -4062,7 +4065,7 @@ function nextStep(){
   if(!L2.some(r=>r.kind==='drill'&&r.drill==='pitch'))return {kick:L('Aufwärmen','Warm-up'),t:L('Üb die erste Frage: „Erzählen Sie etwas über sich“','Practise the first question: “Tell us about yourself”'),why:L('Sie kommt in fast jedem Gespräch. Mit Feedback und Musterantwort.','It comes up in almost every interview. With feedback and a model answer.'),min:4,cta:L('Jetzt üben','Practise now'),act:'drill:pitch'};
   const sims=R.filter(r=>['fit','ac','case'].includes(r.kind));
   const simKey=k=>{const [kind,x]=k.split(':');return sims.filter(r=>r.kind===kind&&(!x||kind==='case'||(r.meta&&(r.meta.art===x||r.meta.type===x)))).length;};
-  const simStep=(k,kick,why)=>{const l=simLabel(k);const [kind]=k.split(':');return {kick,t:l.t,why:why||l.d,min:kind==='case'?30:kind==='ac'?20:15,cta:L('Starten','Start'),act:k==='case'?'case:'+(sims.some(r=>r.kind==='case')?'kandidat':'coach')+':mittel':k};};
+  const simStep=(k,kick,why)=>{const l=simLabel(k);const [kind]=k.split(':');return {kick,t:l.t,why:why||l.d,min:kind==='case'?30:kind==='ac'?20:15,cta:L('Starten','Start'),act:k==='case'?'case:'+(sims.some(r=>r.kind==='case')?'kandidat:mittel':'coach:einstieg'):k};};
   if(!simKey(T.sims[0]))return simStep(T.sims[0],L('Dein erstes Gespräch','Your first interview'),L('Ein ganzes Gespräch mit Bewertungsbogen. Danach weißt du, wo du stehst.','A full interview with a scorecard. Afterwards you know where you stand.'));
   const W=weakSpots();
   const lastDrill=L2.find(r=>r.kind==='drill'&&r.drill===W.drill);
@@ -4320,7 +4323,7 @@ const Self={
       <button type="button" class="btn ghost small" data-sf="skip" aria-label="${L('Überspringen','Skip')}">✕</button></div>
       <div class="v-self">${crit.map(([id,label])=>`<div class="v-sr"><span>${esc(trStr(label))}</span><span class="chips" role="radiogroup" aria-label="${esc(trStr(label))}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="false" data-sv="${id}:${n}">${n}</button>`).join('')}</span></div>`).join('')}</div>
       <div class="actions"><button type="button" class="btn primary" data-sf="go" disabled>${L('Weiter zur Bewertung','On to the scorecard')}</button><button type="button" class="linkbtn" data-sf="skip">${L('Überspringen','Skip')}</button></div>`;
-    $('#self-dlg').hidden=false;
+    this.last=document.activeElement;$('#self-dlg').hidden=false;const f=$('#self-box [data-sv]');if(f)f.focus();
   },
   pick(id,n){
     this.vals[id]=n;
@@ -4329,7 +4332,7 @@ const Self={
     if(go&&s)go.disabled=critFor(this.kind,s.cfg).some(([k])=>!this.vals[k]);
   },
   done(skip){
-    const s=ACTIVE[this.kind];$('#self-dlg').hidden=true;
+    const s=ACTIVE[this.kind];$('#self-dlg').hidden=true;if(this.last&&this.last.focus)try{this.last.focus({preventScroll:true});}catch(e){}
     if(!s)return;
     if(skip)s.selfSkip=true;else s.self={...this.vals};
     persistActive(true);runFeedback(this.kind);
@@ -4339,6 +4342,7 @@ document.addEventListener('click',e=>{
   const v=e.target.closest('[data-sv]');if(v){const [id,n]=v.dataset.sv.split(':');Self.pick(id,+n);return;}
   const f=e.target.closest('[data-sf]');if(f){Self.done(f.dataset.sf==='skip');return;}
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#self-dlg').hidden)Self.done(true);});
 function selfCompareHTML(rec){
   const self=rec.self,ks=(rec.feedback&&rec.feedback.kriterien||[]).filter(k=>k.punkte!=null&&self&&self[k.id]!=null);
   if(!ks.length||rec.feedback.self)return '';
@@ -4402,7 +4406,7 @@ const Video={
   open(){
     this.close(true);
     this.st={phase:'intro',answer:settings.videoAnswer||VIDEO_TIMING.answer,qs:this.questions(),i:0,items:[],mode:null,stream:null,rec:null,sr:null,t:null,last:document.activeElement};
-    $('#video-dlg').hidden=false;this.render();
+    $('#video-dlg').hidden=false;this.render();const c=$('#video-box [data-v="start"]');if(c)c.focus();
   },
   close(silent){
     const s=this.st;if(!s)return;
@@ -4537,7 +4541,7 @@ const Video={
     const s=this.st;if(!s||!s.self)return;
     const kr=VIDEO_CRIT.map(([id,label])=>({id,label,punkte:s.self[id],kommentar:''}));
     const g=Math.round(kr.reduce((a,k)=>a+k.punkte,0)/kr.length*10)/10;
-    const fb={gesamt:g,urteil:g>=4?'weiter':g>=3?'knapp':'nein',kriterien:kr,staerken:[],verbesserungen:[],zusammenfassung:L('Selbsteinschätzung nach dem Ansehen der Aufnahmen.','Self-assessment after watching the recordings.'),self:true};
+    const fb={gesamt:g,urteil:g>=3.8?'weiter':g>=3?'knapp':'nein',kriterien:kr,staerken:[],verbesserungen:[],zusammenfassung:L('Selbsteinschätzung nach dem Ansehen der Aufnahmen.','Self-assessment after watching the recordings.'),self:true};
     await this.finish(fb);
   },
   async aiRate(){
@@ -4563,7 +4567,7 @@ Antworte nur mit JSON: {"gesamt": Zahl, "urteil": "weiter"|"knapp"|"nein", "zusa
   async finish(fb){
     const s=this.st;if(!s)return;
     const rec=this.record(fb);
-    await Store.save(rec);
+    await Store.save(rec);s.saved=true;
     Track.log('video',fb.gesamt,{m:Math.round(rec.durationSec/60),self:fb.self?1:0});
     const box=$('#v-rate');if(box)box.outerHTML=`<div class="v-card">${scorecardHTML(rec)}</div>`;
     renderHome();
@@ -4587,7 +4591,7 @@ document.addEventListener('click',e=>{
   const r=e.target.closest('[data-vs]');if(r&&Video.st){const [id,n]=r.dataset.vs.split(':');Video.selfRate(id,+n);return;}
   if(e.target.id==='video-dlg'&&Video.st&&Video.st.phase!=='q')Video.close();
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&Video.st)Video.close();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&Video.st&&(Video.st.phase==='intro'||Video.st.saved))Video.close();});
 /* ---------------- demo mode: replay a recorded interview ----------------
    The public demo has no AI, so this shows what a session looks like: the transcript plays
    turn by turn, then the scorecard appears. Content lives in content/examples.js. */
@@ -4647,6 +4651,17 @@ document.addEventListener('click',e=>{
   if(e.target.id==='demo-dlg')Demo.close();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#demo-dlg').hidden)Demo.close();});
+/* keyboard focus stays inside an open dialog */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Tab')return;
+  const dlg=[...document.querySelectorAll('.pw-back:not([hidden])')].pop();if(!dlg)return;
+  const f=[...dlg.querySelectorAll('button,a[href],input,select,textarea,video[controls],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null);
+  if(!f.length)return;
+  const first=f[0],last=f[f.length-1];
+  if(!dlg.contains(document.activeElement)){e.preventDefault();first.focus();return;}
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
 /* light/dark switch: remembers the choice per browser, otherwise follows the system */
 const Theme={
   key:'cb.theme',
@@ -4688,7 +4703,11 @@ renderFootNote();AI.ready.then(()=>renderFootNote());
 })();
 function renderHome(){
   const el=$('#home');if(!el)return;
-  const a=activeApp(),st=nextStep(),q=quickStep(),M=milestones();
+  const a=activeApp(),M=milestones();let st=nextStep(),q=quickStep();
+  if(AI.status==='unavailable'&&/^(go:docs|drill:|fit|ac|case|sheet)/.test(st.act)){
+    st={kick:L('In der Demo','In the demo'),t:L('Übe ein Video-Interview','Practise a video interview'),why:L('Die KI-Übungen laufen in Claude oder auf einem eigenen Server. Das Video-Interview mit Aufnahme, Sprechanalyse und Selbsteinschätzung funktioniert auch hier.','The AI exercises run in Claude or on an own server. The video interview with recording, speech analysis and self-assessment works here too.'),min:6,cta:L('Starten','Start'),act:'video'};
+    if(q.act==='video')q={t:L('Kopfrechnen & Zahlenreihen','Mental maths & number series'),d:L('Wie im Einstellungstest. Ohne KI, unbegrenzt.','Like in an aptitude test. No AI, unlimited.'),min:3,act:'math'};
+  }
   const sims=Store.list.filter(r=>['fit','ac','case'].includes(r.kind)&&r.score!=null);
   const last=sims[0];
   const doneN=M.filter(m=>m.ok).length,frac=doneN/M.length;
@@ -4774,7 +4793,7 @@ function runStep(act){
     const [,k,x,y]=String(act).split(':');
     if(k==='fit'){if(x&&FIT_ARTS[x]){settings.fitArt=x;saveSettings();renderFitArt();renderTypical();}setTab('fit');if(!ACTIVE.fit)showStage('fit','setup');window.scrollTo({top:0});startFit();return;}
     if(k==='ac'){setTab('ac');if(!ACTIVE.ac)showStage('ac','setup');window.scrollTo({top:0});startAc(x);return;}
-    if(k==='case'){prepCase(x==='coach'?'coach':'kandidat');if(y&&LEVELS[y]){settings.level=y;saveSettings();}startCase();return;}
+    if(k==='case'){prepCase(x==='coach'?'coach':'kandidat');if(y&&LEVELS[y]){settings.level=y;saveSettings();const r=$('#case-level-'+y);if(r)r.checked=true;}startCase();return;}
     if(k==='drill'){startDrill(x);return;}
   }
   const [k,x]=String(act).split(':');
@@ -4884,7 +4903,7 @@ function setLang(l,initial){
   if(typeof Theme!=='undefined')Theme.apply(Theme.get(),false);
   if(typeof renderFootNote==='function')renderFootNote();
   if(initial)return;
-  settings.uiLang=l;settings.lang=l;settings.fitLang=l;saveSettings(true);
+  settings.uiLang=l;if(!settings.practiceLangSet){settings.lang=l;settings.fitLang=l;}saveSettings(true);
   refreshSetupUI();renderLessons();renderDrillGrid();renderPath();renderHistory();renderMathAdapt();renderProfileBox();renderApps();renderAppBar();renderHome();renderLibrary();updateBackbar();
   if(!$('#goal-dlg').hidden)renderGoal();
   if(!$('#onb').hidden)renderOnb();
@@ -5004,8 +5023,8 @@ const MIC_SVG='<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="2" wid
 const SPK_SVG='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3v10l-4-3H3z" fill="currentColor"></path><path d="M13 7.5a3.5 3.5 0 0 1 0 5M15.5 5a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>';
 function sayBtnHTML(i){return TTS.ok?`<button type="button" class="say" data-say="${i}" aria-label="Beitrag vorlesen">${SPK_SVG}<span>Vorlesen</span></button>`:'';}
 function setSaying(btn){
-  $$('.say.on').forEach(b=>{b.classList.remove('on');const sp=b.querySelector('span');if(sp)sp.textContent='Vorlesen';const t=b.closest('.turn');if(t)t.classList.remove('speaking');});
-  if(btn){btn.classList.add('on');const sp=btn.querySelector('span');if(sp)sp.textContent='Stopp';const t=btn.closest('.turn');if(t)t.classList.add('speaking');}
+  $$('.say.on').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-label','Beitrag vorlesen');const sp=b.querySelector('span');if(sp)sp.textContent='Vorlesen';const t=b.closest('.turn');if(t)t.classList.remove('speaking');});
+  if(btn){btn.classList.add('on');btn.setAttribute('aria-label','Vorlesen stoppen');const sp=btn.querySelector('span');if(sp)sp.textContent='Stopp';const t=btn.closest('.turn');if(t)t.classList.add('speaking');}
 }
 function stopSpeech(){TTS.stop();setSaying(null);}
 function speakTurn(kind,idx){
@@ -5078,7 +5097,7 @@ function turnHTML(who,text,tip,i,label){
   return `<li class="turn cand"><div class="who">Du</div><div class="body">${esc(text)}</div></li>`;
 }
 let curIntLabel='Interviewer';
-function intLabel(kind){return kind==='ac'?(ACTIVE.ac&&ACTIVE.ac.cfg.type==='gruppe'?'Runde':ACTIVE.ac&&ACTIVE.ac.cfg.type==='praesentation'?'Jury':'Gegenüber'):'Interviewer';}
+function intLabel(kind){return kind==='ac'?(ACTIVE.ac&&ACTIVE.ac.cfg.type==='gruppe'?L('Runde','Group'):ACTIVE.ac&&ACTIVE.ac.cfg.type==='praesentation'?L('Jury','Panel'):L('Gegenüber','Counterpart')):'Interviewer';}
 function mountRun(kind){
   const s=ACTIVE[kind];if(!s)return;
   curIntLabel=intLabel(kind);
@@ -5106,7 +5125,7 @@ function mountRun(kind){
   R.dictguide.addEventListener('click',ev=>{if(ev.target.closest('[data-dg="close"]')){hideDictGuide(kind);R.input.focus({preventScroll:true});}});
   if(R.ttstest)R.ttstest.onclick=()=>{
     TTS.unlock();const lang=s.cfg.lang,v=TTS.voiceFor(lang);
-    R.ttsinfo.textContent=v?'Stimme: '+v.name:TTS.voices.length?'Keine '+(lang==='en'?'englische':'deutsche')+' Stimme gefunden, es läuft die Standardstimme.':'Dein Gerät meldet keine Stimmen.';
+    R.ttsinfo.textContent=v?L('Stimme','Voice')+': '+v.name:TTS.voices.length?'Keine '+(lang==='en'?'englische':'deutsche')+' Stimme gefunden, es läuft die Standardstimme.':'Dein Gerät meldet keine Stimmen.';
     const ok=TTS.speak(lang==='en'?'Hello, I will be your interviewer today.':'Hallo, ich bin heute Ihr Interviewer.',lang,null,er=>{R.ttsinfo.textContent='Vorlesen funktioniert hier nicht ('+er+').';});
     if(!ok)R.ttsinfo.textContent='Dieser Browser kann nicht vorlesen.';
   };
@@ -5202,6 +5221,7 @@ async function interviewerTurn(kind){
     if(ACTIVE[kind]!==s)return;
     s.log.push({k:'int',raw:text,t:s.elapsed});
     body.innerHTML=md(stripMarkers(text));
+    const lv=$('#sr-live');if(lv)lv.textContent=curIntLabel+': '+stripMarkers(text).slice(0,800);
     const mk=parseMarkers(text);const ph=normPhase(mk.phase);
     if(mk.tipp)body.insertAdjacentHTML('afterend',coachNoteHTML(mk.tipp));
     li.querySelector('.stack').insertAdjacentHTML('beforeend',sayBtnHTML(s.log.length-1));
@@ -5318,7 +5338,7 @@ function metaLine(rec){
 const dateFmt=new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const dateShort=new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});
 function scorecardHTML(rec){
-  const fb=rec.feedback;const v=VERDICT[fb.urteil]||VERDICT.knapp;
+  const fb=Object.assign({kriterien:[],staerken:[],verbesserungen:[]},rec.feedback||{});const v=VERDICT[fb.urteil]||VERDICT.knapp;
   const facts=rec.kind==='docs'?dateFmt.format(new Date(rec.date)):[dateFmt.format(new Date(rec.date)),'Dauer '+fmtTime(rec.durationSec),rec.kind==='video'?'':rec.hints?(rec.hints===1?'1 Hinweis':rec.hints+' Hinweise'):'ohne Hinweise',rec.endedEarly?'vorzeitig beendet':''].filter(Boolean).join(' · ');
   const vt=rec.kind==='docs'?{weiter:{cls:'good',txt:'Einladungsreif'},knapp:{cls:'warn',txt:'Grenzfall'},nein:{cls:'bad',txt:'Noch nicht einladungsreif'}}[fb.urteil]:null;
   const ml=fb.musterloesung;const leit=rec.book&&rec.book.leitfrage;
@@ -5546,7 +5566,7 @@ function renderHistory(){
   const sims=L.filter(r=>['case','fit','ac'].includes(r.kind)&&r.feedback),docs=L.filter(r=>r.kind==='docs'&&r.feedback),maths=L.filter(r=>r.kind==='math'),drills=L.filter(r=>r.kind==='drill'&&r.score!=null);
   const s5=sims.slice(0,5).map(r=>r.score).filter(x=>x!=null),p5=sims.slice(5,10).map(r=>r.score).filter(x=>x!=null);
   let trend='';if(s5.length&&p5.length){const d=avg(s5)-avg(p5);if(Math.abs(d)>=0.1)trend=` · <span class="${d>0?'trend-up':'trend-down'}">${d>0?'+':'−'}${fmt1(Math.abs(d))}</span> zu davor`;}
-  const yes=sims.filter(r=>r.verdict==='weiter').length;
+  const yes=sims.slice(0,5).filter(r=>r.verdict==='weiter').length;
   const m5=maths.slice(0,5);const mRate=m5.length?Math.round(m5.reduce((a,r)=>a+r.correct,0)/Math.max(1,m5.reduce((a,r)=>a+r.total,0))*100):null;
   const byKind=k=>sims.filter(r=>r.kind===k).length;
   const tiles=`<div class="tiles">
@@ -5607,7 +5627,7 @@ function toggleHist(btn){
 /* ---------------- CV upload (fit profile) ---------------- */
 const CV={state:'idle'};
 const CV_MAX=10*1024*1024;
-const LIBS={pdf:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',pdfw:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',zip:'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'};
+const LIBS={pdf:'vendor/pdfjs/pdf.min.js',pdfw:new URL('vendor/pdfjs/pdf.worker.min.js',location.href).href,zip:'vendor/jszip/jszip.min.js'};
 const scriptCache={};
 function loadScript(src){
   if(!scriptCache[src])scriptCache[src]=new Promise((res,rej)=>{
@@ -5877,7 +5897,7 @@ function trackGroupOrder(){return (TRACKS[settings.track]||TRACKS.allgemein).les
 function renderLessons(){
   const read=lessonsRead();
   $('#lessons').innerHTML=trackGroupOrder().map(g=>{
-    const ls=LESSONS.filter(l=>l.group===g);
+    const ls=LESSONS.filter(l=>(l.group||'case')===g);
     return `<div class="grp-h">${esc(LESSON_GROUPS[g])}</div><div class="lessons">${ls.map((l,i)=>`<details class="lesson" id="lesson-${l.id}" data-id="${l.id}"><summary><span class="lnum">${String(i+1).padStart(2,'0')}</span><span class="ltitle">${esc(l.title)}<small>${esc(l.sub)} · ${l.min} Min.</small></span><span class="lstate">${read.includes(l.id)?'gelesen':''}</span></summary><div class="lesson-in"></div></details>`).join('')}</div>`;
   }).join('');
   $$('#lessons details.lesson').forEach(d=>d.addEventListener('toggle',()=>{
@@ -5895,7 +5915,7 @@ function openLesson(id){
 }
 function openNextLesson(group){
   const g=group||trackGroupOrder()[0];const read=lessonsRead();
-  const ls=LESSONS.filter(l=>l.group===g);
+  const ls=LESSONS.filter(l=>(l.group||'case')===g);
   const l=ls.find(x=>!read.includes(x.id))||ls[0];
   openLesson(l.id);
 }
@@ -5919,7 +5939,7 @@ function renderPath(){
   renderHome();
   const el=$('#learn-path');if(!el)return;
   const T=TRACKS[settings.track]||TRACKS.allgemein,L=Store.list;
-  const g=trackGroupOrder()[0],gl=LESSONS.filter(l=>l.group===g);
+  const g=trackGroupOrder()[0],gl=LESSONS.filter(l=>(l.group||'case')===g);
   const read=lessonsRead().filter(id=>gl.some(l=>l.id===id)).length;
   const docs=L.filter(r=>r.kind==='docs').length;
   const dTypes=new Set(L.filter(r=>r.kind==='drill'&&T.drills.includes(r.drill)).map(r=>r.drill)).size;
@@ -5962,7 +5982,7 @@ function planTasks(days){
   const dl=DRILLS[W.drill];
   const drillT={t:`Übung: ${dl.label}`,d:W.why||`${dl.skill} · ca. ${dl.min} Min.`,act:'drill:'+W.drill,done:L.some(r=>r.kind==='drill'&&r.drill===W.drill)};
   const mathT={t:'Test-Runde',d:W.mathWeak?'Rechnen ist gerade dein größter Hebel.':'Zahlenreihen und Kopfrechnen, 10 Aufgaben.',act:'math',done:L.some(r=>r.kind==='math')};
-  const g=trackGroupOrder()[0],gl=LESSONS.filter(l=>l.group===g),read=lessonsRead().filter(id=>gl.some(l=>l.id===id)).length;
+  const g=trackGroupOrder()[0],gl=LESSONS.filter(l=>(l.group||'case')===g),read=lessonsRead().filter(id=>gl.some(l=>l.id===id)).length;
   const lessonT={t:'Nächste Lektion lesen',d:`${read} von ${gl.length} gelesen`,act:'lesson:'+g,done:read>=gl.length};
   const docsT={t:'Unterlagen-Check',d:'Erst prüfen, ob die Unterlagen zur Stelle passen.',act:'docs',done:L.some(r=>r.kind==='docs')};
   const hasDocs=Store.list.some(r=>r.kind==='docs');
@@ -6134,7 +6154,7 @@ function renderDrill(){
   $('#learn-home').hidden=true;box.hidden=false;updateBackbar();
   box.innerHTML=`<div class="drill">
     <div><button type="button" class="linkbtn" data-act="back">← Alle Übungen</button></div>
-    <div class="run-head"><div class="eyebrow">Übung · ${esc(d.skill)} · ${esc((DRILL_LEVELS[D.cfg.level]||DRILL_LEVELS.einstieg).label)}</div><h2 class="h2">${esc(d.label)}: ${esc(D.task.titel)}</h2></div>
+    <div class="run-head"><div class="eyebrow">Übung · ${esc(d.skill)} · ${esc((DRILL_LEVELS[D.cfg.level]||DRILL_LEVELS.einstieg).label)}</div><h2 class="h2">${esc(trStr(d.label))}: ${esc(D.task.titel)}</h2></div>
     <div class="drill-layout">
       <div class="drill-main">
         <div class="panel task md">${md(D.task.kontext)}<p class="ask-line"><b>Aufgabe:</b> ${mdInline(esc(D.task.aufgabe))}</p></div>

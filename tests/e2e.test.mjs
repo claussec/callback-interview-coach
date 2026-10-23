@@ -252,3 +252,67 @@ test('body language maths: a frontal face counts as eye contact',async()=>{
   assert.equal(out.size,42);
   await ctx.close();
 });
+
+/* ---- regressions from the audit ---- */
+test('feedback card fits on a phone screen',async()=>{
+  const {page,ctx}=await open({width:390});
+  await page.evaluate(()=>{Feedback.kind='fit';Feedback.n=1;Feedback.render();});
+  await page.waitForTimeout(700);
+  const box=await page.locator('#fbq').boundingBox();
+  assert.ok(box.x>=0&&box.x+box.width<=390,`card spans ${box.x}–${box.x+box.width}`);
+  const send=await page.locator('[data-fq="send"]').boundingBox();
+  assert.ok(send.x+send.width<=390);
+  await ctx.close();
+});
+
+test('every lesson belongs to a group that is shown',async()=>{
+  const {page,ctx}=await open({settings:app({track:'beratung'})});
+  const missing=await page.evaluate(()=>{const shown=new Set(trackGroupOrder());return LESSONS.filter(l=>!shown.has(l.group||'case')).map(l=>l.id);});
+  assert.deepEqual(missing,[]);
+  await ctx.close();
+});
+
+test('English number input reads a single dot as a decimal point',async()=>{
+  const {page,ctx}=await open();
+  await page.click('[data-lang="en"]');
+  assert.deepEqual(await page.evaluate(()=>[parseNum('0.875'),parseNum('140.493'),parseNum('1,234'),parseNum('1,234.5')]),[0.875,140.493,1234,1234.5]);
+  await page.click('[data-lang="de"]');
+  assert.deepEqual(await page.evaluate(()=>[parseNum('140.493'),parseNum('0,875')]),[140493,0.875]);
+  await ctx.close();
+});
+
+test('a deleted application stays deleted after reload',async()=>{
+  const {page,ctx}=await open({settings:app({firm:'Nordwerk AG',position:'Trainee Finance'})});
+  await page.evaluate(()=>{settings.apps=[];settings.activeApp='';});
+  await page.evaluate(()=>{const id='a1';settings.apps=[{id,firm:'Nordwerk AG',position:'Trainee Finance'}];settings.activeApp=id;});
+  // same path as the delete button
+  await page.evaluate(()=>{settings.apps=settings.apps.filter(x=>x.id!=='a1');if(settings.activeApp==='a1'){settings.activeApp='';if(!settings.apps.length){settings.firm='';settings.position='';settings.jobAd='';settings.interviewDate='';}}saveSettings(true);});
+  await page.reload();await page.waitForFunction(()=>typeof settings!=='undefined');
+  assert.equal(await page.evaluate(()=>(settings.apps||[]).length),0);
+  await ctx.close();
+});
+
+test('without AI the home screen offers something that works',async()=>{
+  const {page,ctx}=await open({settings:app({profile:'BWL'})});
+  await page.waitForFunction(()=>AI.status==='unavailable');
+  assert.equal(await page.locator('#go-btn').getAttribute('data-step'),'video');
+  await ctx.close();
+});
+
+test('keyboard focus stays inside an open dialog',async()=>{
+  const {page,ctx}=await open();
+  await page.evaluate(()=>Demo.open());
+  for(let i=0;i<6;i++)await page.keyboard.press('Tab');
+  assert.ok(await page.evaluate(()=>document.getElementById('demo-dlg').contains(document.activeElement)));
+  await ctx.close();
+});
+
+test('PDF and Word readers are served from the repository',async()=>{
+  const {page,ctx,outside}=await open();
+  const urls=await page.evaluate(()=>Object.values(LIBS));
+  for(const u of urls)assert.equal(new URL(u,PAGE).origin,new URL(PAGE).origin,u);
+  await page.evaluate(()=>Promise.all([loadScript(LIBS.pdf),loadScript(LIBS.zip)]));
+  assert.ok(await page.evaluate(()=>!!window.pdfjsLib&&!!window.JSZip));
+  assert.deepEqual(outside,[]);
+  await ctx.close();
+});

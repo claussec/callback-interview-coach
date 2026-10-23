@@ -8,17 +8,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
+    # Official Playwright image: Chromium and its system libraries are already installed,
+    # so the run does not depend on a browser download. Keep the tag in step with package.json.
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            server/package-lock.json
       - run: npm ci
       - run: npm ci --prefix server
-      - run: npx playwright install --with-deps chromium
       - run: npm test
+        env:
+          HOME: /root
