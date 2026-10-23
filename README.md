@@ -51,7 +51,7 @@ There is no shortage of application advice. What is missing is a place where you
 - **No build step, no framework:** `index.html` plus six content files. Runs from disk, on GitHub Pages and as a Claude artifact unchanged.
 - **Data over code:** interview types, assessment centre exercises, scoring rubrics, drills and fields of work live in [`content/`](content). Adding an interview type is one entry, not a code change.
 - **Guidance engine:** the home screen asks one function, `nextStep()`, what matters most right now, based on progress, weakest criterion and days until the interview.
-- **One AI seam:** every model call goes through `aiCall()` / `aiJson()`. The AI features use the Claude Artifacts runtime and **do not run in the GitHub demo**, which shows a recorded session instead. Swapping in your own backend means changing those two functions.
+- **One AI seam:** every model call goes through `aiCall()` / `aiJson()`. Inside Claude that is the artifact runtime; on its own the app looks for `server/server.mjs`, a small Node server that forwards requests to the Claude API (key stays on the server), with an access code for testers, rate limits and the anonymous tester statistics. The GitHub demo has neither and shows a recorded session instead. Setup on a Hetzner server: [DEPLOY.md](DEPLOY.md).
 - **Tested:** content consistency and end-to-end browser tests run on every push.
 
 More in [ARCHITECTURE.md](ARCHITECTURE.md), ideas in [ROADMAP.md](ROADMAP.md), setup in [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -65,7 +65,10 @@ content/
   examples.js         recorded example sessions (demo mode)
   speech.js           filler words, pace limits, video interview questions
   i18n-en.js          German → English dictionary
-tests/                content checks (Node) and browser tests (Playwright)
+server/server.mjs     optional server: Claude API proxy, access code, rate limits, usage store
+deploy/               setup and update scripts, Caddy config, systemd unit
+legal/                templates for legal notice and privacy policy
+tests/                content, browser and server tests
 fonts/                self-hosted fonts, no third-party requests
 vendor/mediapipe/     on-device face landmarks for the body language analysis (Apache-2.0)
 ```

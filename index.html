@@ -1232,6 +1232,8 @@ input[type="date"]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3
 /* quieter chrome */
 .banner{background:none;border:0;justify-content:center;text-align:center;font-size:13px;padding:8px 0 0;color:var(--muted)}
 .banner b{font-weight:600}
+.code-row{display:inline-flex;gap:8px;align-items:center;margin:6px 8px 0}
+.code-row input{font:inherit;font-size:14px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);width:150px}
 .foot{border-top:0;margin-top:56px;padding-top:0;text-align:center}
 .foot details{display:inline-block;text-align:left;max-width:80ch}
 .foot summary{cursor:pointer;list-style:none;font-size:12.5px;color:var(--muted);text-align:center}
@@ -2982,11 +2984,83 @@ const i18nObs=new MutationObserver(recs=>{
   }
 });
 
+/* ---------------- own server (when not running inside Claude) ----------------
+   server/server.mjs forwards AI requests to the Claude API and keeps the anonymous tester
+   statistics. The app finds it via api/health and then uses it through the same interface as
+   the artifact runtime: sample(input, opts) and sample.json(input, opts), plus a tiny db/user
+   pair for Track. Without a server the app stays in demo mode. */
+const Server={
+  ok:false,needsCode:false,
+  code(){try{return localStorage.getItem('cb.code')||'';}catch(e){return '';}},
+  admin(){try{return localStorage.getItem('cb.admin')||'';}catch(e){return '';}},
+  headers(){const h={'content-type':'application/json'};const c=this.code(),a=this.admin();if(c)h['x-access-code']=c;if(a)h['x-admin-token']=a;return h;},
+  async detect(){
+    try{const m=/[#&]admin=([^&]+)/.exec(location.hash);if(m){localStorage.setItem('cb.admin',decodeURIComponent(m[1]));history.replaceState(null,'',location.pathname+location.search);}}catch(e){}
+    if(location.protocol==='file:')return false;
+    try{
+      const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),2500);
+      const r=await fetch('api/health',{cache:'no-store',signal:ctl.signal});clearTimeout(t);
+      if(!r.ok)return false;const h=await r.json();if(!h||!h.ok)return false;
+      this.ok=true;this.needsCode=!!h.code;return true;
+    }catch(e){return false;}
+  },
+  async fail(r){
+    let code='upstream_error';try{code=(await r.json()).code||code;}catch(e){}
+    if(r.status===401){this.needsCode=true;try{localStorage.removeItem('cb.code');}catch(e){}renderAIState();code='access_code';}
+    throw {code};
+  },
+  sample(){
+    const call=async(input,opts={})=>{
+      let r;
+      try{r=await fetch('api/sample',{method:'POST',headers:this.headers(),body:JSON.stringify({input,modelTier:opts.modelTier||'default'}),signal:opts.signal});}
+      catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'upstream_error'};}
+      if(!r.ok)await this.fail(r);
+      const rd=r.body.getReader(),dec=new TextDecoder();let text='';
+      for(;;){
+        let part;try{part=await rd.read();}catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'upstream_error',text};}
+        if(part.done)break;
+        const delta=dec.decode(part.value,{stream:true});text+=delta;
+        if(opts.onText)try{opts.onText({text,delta});}catch(e){}
+      }
+      if(!text.trim())throw {code:'empty_completion'};
+      return {text,truncated:false};
+    };
+    call.json=async(input,opts={})=>{
+      const {text}=await call(input,opts);
+      const t=text.replace(/^```(?:json)?\s*|\s*```\s*$/g,'');
+      const a=Math.min(...['{','['].map(c=>{const i=t.indexOf(c);return i<0?Infinity:i;}));
+      const b=Math.max(t.lastIndexOf('}'),t.lastIndexOf(']'));
+      try{return JSON.parse(t.slice(a,b+1));}catch(e){throw {code:'invalid_json'};}
+    };
+    return call;
+  },
+  /* the db/user pair Track expects, backed by api/usage */
+  data(){
+    const self=this;
+    let id='';try{id=localStorage.getItem('cb.uid')||'';if(!id){id='u'+crypto.getRandomValues(new Uint32Array(3)).join('');localStorage.setItem('cb.uid',id);}}catch(e){}
+    const db={
+      doc(path){const did=String(path).split('/')[1];return {
+        async get(){const r=await fetch('api/usage/'+did,{headers:self.headers(),cache:'no-store'});if(!r.ok)throw new Error('usage');const j=await r.json();return {exists:!!j.exists,data:()=>j.data};},
+        async set(d){const r=await fetch('api/usage/'+did,{method:'PUT',headers:self.headers(),body:JSON.stringify(d)});if(!r.ok)throw new Error('usage');}
+      };},
+      collection(){return {limit(){return {async get(){const r=await fetch('api/usage',{headers:self.headers(),cache:'no-store'});if(!r.ok)throw new Error('usage');const j=await r.json();return {docs:(j.docs||[]).map(d=>({data:()=>d}))};}};}};}
+    };
+    const user={
+      async isOwner(){if(!self.admin())return false;try{return (await fetch('api/admin/check',{headers:self.headers()})).ok;}catch(e){return false;}},
+      async id(){return id;}
+    };
+    return {db,user};
+  }
+};
+
 /* ---------------- Claude access ---------------- */
 const AI={sample:null,status:'checking'};
 AI.ready=(async()=>{
   try{
-    if(!window.claude||typeof window.claude.use!=='function'){AI.status='unavailable';}
+    if(!window.claude||typeof window.claude.use!=='function'){
+      if(await Server.detect()){AI.sample=Server.sample();AI.status='ready';AI.backend='server';}
+      else AI.status='unavailable';
+    }
     else{const s=await window.claude.use('sample');AI.sample=s;AI.status=s?'ready':'unavailable';}
   }catch(e){AI.status='unavailable';}
   renderAIState();
@@ -3010,6 +3084,8 @@ const ERR_COPY={
   invalid_json:'Die Antwort war unvollständig. Versuch es erneut.',
   bad_shape:'Die Antwort hatte ein unerwartetes Format. Versuch es erneut.',
   prompt_too_large:'Das Gespräch ist zu lang geworden. Beende es und hol dir das Feedback.',
+  access_code:'Für die KI-Übungen brauchst du einen Zugangscode. Gib ihn oben auf der Seite ein.',
+  cancelled:'Abgebrochen.',
   upstream_error:'Die Verbindung wurde unterbrochen. Versuch es erneut.'
 };
 function errText(e){
@@ -3026,8 +3102,14 @@ function renderAIState(){
     b.innerHTML='<span><b>Kein Zugriff auf Claude.</b> Interviews und Feedback brauchen deine Erlaubnis. Du kannst sie im Berechtigungsmenü dieser Seite erteilen.</span><button type="button" class="btn small" id="perm-btn">Berechtigungen öffnen</button>';
     b.hidden=false;
     $('#perm-btn').onclick=async()=>{try{const p=await window.claude.use('permissions');if(p)await p.manage();}catch(e){}};
+  }else if(AI.backend==='server'&&Server.needsCode&&!Server.code()){
+    b.innerHTML=`<span><b>${L('Testphase.','Test phase.')}</b> ${L('Für die KI-Übungen brauchst du einen Zugangscode. Du bekommst ihn von der Person, die dich eingeladen hat.','The AI exercises need an access code. You get it from the person who invited you.')}</span><form class="code-row" id="code-form"><label class="sr" for="code-in">${L('Zugangscode','Access code')}</label><input id="code-in" type="text" autocomplete="off" placeholder="${L('Zugangscode','Access code')}"><button type="submit" class="btn small">${L('Freischalten','Unlock')}</button></form><span class="small" id="code-note"></span>`;
+    b.hidden=false;
+    $('#code-form').onsubmit=async e=>{e.preventDefault();const v=$('#code-in').value.trim();if(!v)return;try{localStorage.setItem('cb.code',v);}catch(er){}
+      const r=await fetch('api/usage/check-code',{headers:Server.headers()}).catch(()=>null);
+      if(r&&r.status!==401){Server.needsCode=false;renderAIState();Track.init();}else{try{localStorage.removeItem('cb.code');}catch(er){}$('#code-note').textContent=L('Der Code stimmt nicht.','That code is not right.');}};
   }else b.hidden=true;
-  const off=AI.status==='unavailable'||AI.status==='denied';
+  const off=AI.status==='unavailable'||AI.status==='denied'||(AI.backend==='server'&&Server.needsCode&&!Server.code());
   ['case','fit','ac','docs'].forEach(k=>{const b=$('#'+k+'-start');if(b)b.disabled=off;});
 }
 
@@ -3123,8 +3205,9 @@ const Track={
   db:null,ref:null,data:null,on:false,owner:false,q:Promise.resolve(),
   async init(){
     try{
-      if(!window.claude||typeof window.claude.use!=='function')return;
-      const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+      let db,user;
+      if(window.claude&&typeof window.claude.use==='function')[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+      else{await AI.ready;if(AI.backend!=='server'||(Server.needsCode&&!Server.code()))return;({db,user}=Server.data());}
       if(!db||!user)return;
       this.db=db;this.owner=await user.isOwner();
       if(this.owner){const al=$('#admin-link');if(al)al.hidden=false;if(currentTab==='admin')renderAdmin();return;}
@@ -4585,18 +4668,18 @@ Theme.init();
 function renderFootNote(){
   const sm=$('#foot-note summary'),el=$('#foot-body');if(!el)return;
   sm.textContent=L('Datenschutz & Hinweise','Privacy & notes');
-  const P=(h,de,en)=>`<p><b>${h}</b> ${L(de,en)}</p>`;
+  const P=(h,de,en)=>`<p><b>${h}</b> ${L(de,en)}</p>`,srv=typeof AI!=='undefined'&&AI.backend==='server';
   el.innerHTML=[
     P(L('Prototyp.','Prototype.'),'Callback ist ein privates Projekt und kostenlos. Die Bewertungen sind Übungsfeedback, keine Vorhersage echter Ergebnisse.','Callback is a personal project and free to use. Ratings are practice feedback, not a prediction of real results.'),
     P(L('Deine Daten bleiben bei dir.','Your data stays with you.'),'Lebenslauf, Antworten, Bewerbungen und Verlauf werden nur in deinem Browser gespeichert. Es gibt kein Konto und keinen eigenen Server. Zum Löschen entfernst du die Website-Daten dieser Seite in deinem Browser.','Your CV, answers, applications and history are stored only in your browser. There is no account and no server of our own. To delete them, clear this site’s data in your browser.'),
-    P(L('KI-Funktionen.','AI features.'),'Interviews, Feedback und Unterlagen-Check laufen nur, wenn du Callback in Claude öffnest. Dann gehen deine Eingaben zur Auswertung an Claude (Anthropic) und werden über deinen eigenen Claude-Zugang verarbeitet; es gelten die Datenschutzbestimmungen von Anthropic. E-Mail-Adressen, Telefonnummern und Links aus dem Lebenslauf werden vor dem Senden entfernt, Adresse und Geburtsdatum lässt die KI im Profil weg. In der öffentlichen Demo wird nichts an eine KI gesendet.','Interviews, feedback and the document check only run when you open Callback in Claude. Your input is then sent to Claude (Anthropic) for evaluation and processed through your own Claude access; Anthropic’s privacy policy applies. Email addresses, phone numbers and links are removed from your CV before sending, and the AI leaves out address and date of birth from your profile. The public demo sends nothing to any AI.'),
+    srv?P(L('KI-Funktionen.','AI features.'),'Interviews, Feedback und Unterlagen-Check laufen über diesen Server: Deine Eingaben werden zur Auswertung an die Claude-API von Anthropic (USA) gesendet. Der Server speichert sie nicht. E-Mail-Adressen, Telefonnummern und Links aus dem Lebenslauf werden vor dem Senden entfernt.','Interviews, feedback and the document check run through this server: your input is sent to the Claude API by Anthropic (USA) for evaluation. The server does not store it. Email addresses, phone numbers and links are removed from your CV before sending.'):P(L('KI-Funktionen.','AI features.'),'Interviews, Feedback und Unterlagen-Check laufen nur, wenn du Callback in Claude öffnest. Dann gehen deine Eingaben zur Auswertung an Claude (Anthropic) und werden über deinen eigenen Claude-Zugang verarbeitet; es gelten die Datenschutzbestimmungen von Anthropic. E-Mail-Adressen, Telefonnummern und Links aus dem Lebenslauf werden vor dem Senden entfernt, Adresse und Geburtsdatum lässt die KI im Profil weg. In der öffentlichen Demo wird nichts an eine KI gesendet.','Interviews, feedback and the document check only run when you open Callback in Claude. Your input is then sent to Claude (Anthropic) for evaluation and processed through your own Claude access; Anthropic’s privacy policy applies. Email addresses, phone numbers and links are removed from your CV before sending, and the AI leaves out address and date of birth from your profile. The public demo sends nothing to any AI.'),
     P(L('Kamera und Mikrofon.','Camera and microphone.'),'Video-Aufnahmen bleiben in deinem Browser und werden nicht hochgeladen; beim Schließen sind sie weg. Blickkontakt und Haltung misst eine Gesichtserkennung direkt auf deinem Gerät, es werden keine Bilder gespeichert oder gesendet. Für Transkript, Tempo und Füllwörter nutzt Callback die Spracherkennung deines Browsers. In Chrome schickt der Browser das Audio dafür an Google, in anderen Browsern kann es lokal laufen. Wer das nicht möchte, antwortet schriftlich.','Video recordings stay in your browser and are not uploaded; they are gone when you close the dialog. Eye contact and posture are measured by face detection on your device; no images are stored or sent. For transcript, pace and fillers Callback uses your browser’s speech recognition. In Chrome the browser sends the audio to Google for this; other browsers may run it locally. If you prefer not to, answer in writing.'),
-    P(L('Nutzungsstatistik.','Usage statistics.'),'Nur in der Claude-Version zählt Callback ohne Namen, an welchen Tagen welche Übungsarten genutzt werden und welche Punktzahlen herauskommen. Das dient dazu, den Prototyp zu verbessern. Antworten, Transkripte und Unterlagen werden dabei nicht erfasst. Die öffentliche Demo erfasst keine Nutzung.','Only in the Claude version does Callback count, without names, on which days which exercise types are used and which scores result. This helps improve the prototype. Answers, transcripts and documents are not recorded. The public demo records no usage.'),
-    P(L('Hosting.','Hosting.'),'Die öffentliche Demo liegt auf GitHub Pages. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse. Schriften werden von derselben Seite geladen, die Seite selbst lädt keine Inhalte von Drittanbietern.','The public demo is hosted on GitHub Pages. GitHub processes technically necessary access data such as your IP address. Fonts are served from the same site; the page itself loads no third-party content.'),
+    srv?P(L('Nutzungsstatistik.','Usage statistics.'),'Der Server speichert unter einer zufälligen Kennung, an welchen Tagen welche Übungsarten genutzt werden, welche Punktzahlen herauskommen und deine Antworten auf die Feedback-Frage. Antworten, Transkripte und Unterlagen werden nicht gespeichert.','Under a random identifier the server stores on which days which exercise types are used, the resulting scores and your answers to the feedback question. Answers, transcripts and documents are not stored.'):P(L('Nutzungsstatistik.','Usage statistics.'),'Nur in der Claude-Version zählt Callback ohne Namen, an welchen Tagen welche Übungsarten genutzt werden und welche Punktzahlen herauskommen. Das dient dazu, den Prototyp zu verbessern. Antworten, Transkripte und Unterlagen werden dabei nicht erfasst. Die öffentliche Demo erfasst keine Nutzung.','Only in the Claude version does Callback count, without names, on which days which exercise types are used and which scores result. This helps improve the prototype. Answers, transcripts and documents are not recorded. The public demo records no usage.'),
+    srv?P(L('Hosting.','Hosting.'),'Diese Seite läuft auf einem eigenen Server des Betreibers. Für die Begrenzung von Anfragen wird deine IP-Adresse kurzzeitig im Arbeitsspeicher gehalten. Schriften und Gesichtserkennung kommen vom selben Server, es gibt keine Inhalte von Drittanbietern.','This page runs on the operator\'s own server. To limit requests, your IP address is kept briefly in memory. Fonts and face detection come from the same server; there is no third-party content.'):P(L('Hosting.','Hosting.'),'Die öffentliche Demo liegt auf GitHub Pages. GitHub verarbeitet dabei technisch notwendige Zugriffsdaten wie die IP-Adresse. Schriften werden von derselben Seite geladen, die Seite selbst lädt keine Inhalte von Drittanbietern.','The public demo is hosted on GitHub Pages. GitHub processes technically necessary access data such as your IP address. Fonts are served from the same site; the page itself loads no third-party content.'),
     `<p>${L('Kontakt und Code','Contact and code')}: <a href="https://github.com/claussec/callback-interview-coach" target="_blank" rel="noopener">github.com/claussec/callback-interview-coach</a></p>`
-  ].join('');
+  ].join('')+(srv?`<p><a href="legal/impressum.html">${L('Impressum','Legal notice')}</a> · <a href="legal/datenschutz.html">${L('Datenschutzerklärung','Privacy policy')}</a></p>`:'');
 }
-renderFootNote();
+renderFootNote();AI.ready.then(()=>renderFootNote());
 /* ambient: gentle pointer parallax + header hairline on scroll */
 (()=>{const a=document.getElementById('ambient'),top=document.querySelector('.top');let tx=0,ty=0,x=0,y=0,raf=0;
   const tick=()=>{x+=(tx-x)*.06;y+=(ty-y)*.06;a.style.setProperty('--mx',x.toFixed(3));a.style.setProperty('--my',y.toFixed(3));raf=Math.abs(tx-x)+Math.abs(ty-y)>.002?requestAnimationFrame(tick):0;};

@@ -1,0 +1,13 @@
+# Caddy gets and renews the HTTPS certificate for the domain automatically.
+# Replace callback.example.com with your domain (its DNS A record must point to this server).
+callback.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080 {
+		# stream AI answers to the browser as they arrive
+		flush_interval -1
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

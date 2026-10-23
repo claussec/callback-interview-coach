@@ -51,6 +51,7 @@ flowchart LR
 | **Progress** | `progressData()` | Scores per session in order and each criterion's change from the first to the latest sessions, per practice type. |
 | **Tester feedback** | `Feedback` | Asks "was this helpful?" after the 1st, 4th and 10th exercise; answers go to the owner's usage view. |
 | **AI adapter** | `aiCall()`, `aiJson()` | The only place that talks to a model. Adds the interface language to every request. |
+| **Own server** | `Server`, `server/server.mjs` | Outside Claude the app calls `api/health`; if a server answers, `aiCall()` streams through `api/sample` and `Track` stores usage via `api/usage`. The server maps the app's quick/default/complex tiers to effort low/medium/high on one model (default `claude-opus-5-5`, so prompt caching holds across a session), enables server-side refusal fallback, checks an optional tester access code, limits requests per IP and per day, and serves only the public files. |
 | **State** | `settings`, `Store` | Settings and finished sessions live in `localStorage`. Inside Claude, preferences and history can sync to the artifact database. |
 | **i18n** | `trCore()`, `MutationObserver` | The interface is written in German. When English is on, an observer translates every new text node and attribute from `i18n-en.js`, so new screens are translated without extra code. Model output follows the interface language through the adapter. |
 | **Analytics** | `Track` | Inside Claude only: a pseudonymous count of active days, exercise types and scores plus tester feedback, visible to the owner, including the average improvement per person. Never answers or documents. The public demo records nothing. |
@@ -93,14 +94,15 @@ It shows up in the setup screen, the interviewer follows `rule`, and the `fach` 
 
 **Add a language.** Add a dictionary file like `i18n-en.js` and a flag button. The observer handles the rest.
 
-**Use another model or a backend.** Replace the body of `aiCall()` / `aiJson()` with a `fetch` to your own endpoint. Nothing else talks to the model.
+**Use another model.** Set `CLAUDE_MODEL` for the server. To use a different backend entirely, only `Server.sample()` (the browser side) and `server/server.mjs` change; nothing else talks to the model.
 
 ## Tests
 
-`npm test` runs two suites, also on every push via GitHub Actions:
+`npm test` runs three suites, also on every push via GitHub Actions:
 
 - `tests/content.test.mjs` checks the data: every goal points to interview types that exist, rubrics have unique criteria, every weak criterion maps to an existing drill, keywords are lower case, both example languages match.
 - `tests/e2e.test.mjs` serves the folder over HTTP like GitHub Pages and opens it in Chromium (with a fake camera): no errors and no third-party requests, the guidance engine walks the journey in the right order, field detection, English switch, demo replay, video interview with recording and the written fallback, speech analysis, a full interview in video mode with recording, speech and body analysis and self-assessment, the body language maths, progress per criterion, tester feedback, phone layout in light and dark, the theme choice persists.
+- `tests/server.test.mjs` starts the server with `MOCK_AI=1` (no key, no costs): access code, rate limit, malformed and oversized requests, the usage store, and that server code and configuration are never served.
 - A guard test fails if two scripts define the same top-level name, since classic scripts silently replace each other's functions.
 
 ## Deliberate choices

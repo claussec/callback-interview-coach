@@ -1,0 +1,11 @@
+{
+  "name": "callback-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Serves Callback and forwards its AI requests to the Claude API, with rate limits and an optional access code.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {"node": ">=20"},
+  "scripts": {"start": "node server.mjs"},
+  "dependencies": {"@anthropic-ai/sdk": "^1.1.0"}
+}

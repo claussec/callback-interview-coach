@@ -1,0 +1,21 @@
+[Unit]
+Description=Callback interview coach
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=callback
+WorkingDirectory=/opt/callback/server
+EnvironmentFile=/etc/callback.env
+ExecStart=/usr/bin/node server.mjs
+Restart=on-failure
+RestartSec=3
+# Hardening: the service can only write its usage data.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/callback/server/data
+
+[Install]
+WantedBy=multi-user.target

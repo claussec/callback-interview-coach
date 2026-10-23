@@ -6,7 +6,7 @@ Where Callback could go next, roughly in order of impact. Each item names the pa
 
 | | Idea | Why | Touches |
 |---|---|---|---|
-| 1 | **Standalone AI backend** | The public demo has no AI. A small serverless proxy (for example a Cloudflare Worker) with its own API key, rate limit and abuse protection makes every feature work outside Claude. | `aiCall()` / `aiJson()` only |
+| 1 | **Standalone AI backend** | *Done:* `server/server.mjs` with access code, rate limits and usage store, set up on a small server via `deploy/` ([DEPLOY.md](DEPLOY.md)). Next: per-user accounts instead of one shared code, and a monthly cost report in the usage view. | `Server`, `server/` |
 | 2 | **Spoken interviews** | *Done:* speech input, read-aloud, pace and filler analysis. Next: a hands-free session that listens and answers without clicks, and pause detection. | sessions, `speechStats()` |
 | 3 | **Split `index.html` into ES modules** | Content is already separate. Next: guidance engine, prompt builders, sessions and UI as modules, still without a build step. | whole app |
 | 4 | **Accounts and sync** | Practise on the laptop, read the cheat sheet on the phone. Optional login with end-to-end encrypted history. | `Store`, settings |

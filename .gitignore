@@ -1,2 +1,6 @@
 node_modules/
 test-results/
+server/data/
+.env
+*.env
+!server/.env.example
